@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Product Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Back Button -->
+    <a href="{% url 'product_list' %}" class="btn btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+
+    <!-- Product Detail Section -->
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 400px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-box fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="mb-2">{{ product.name }}</h1>
+                <div class="d-flex gap-2 align-items-center mb-3">
+                    {% if product.category %}
+                        <span class="badge bg-info">{{ product.category.name }}</span>
+                    {% endif %}
+                    {% if product.brand %}
+                        <span class="badge bg-secondary">{{ product.brand.name }}</span>
+                    {% endif %}
+                    {% if product.is_low_stock %}
+                        <span class="badge bg-warning">Low Stock</span>
+                    {% elif product.stock == 0 %}
+                        <span class="badge bg-danger">Out of Stock</span>
+                    {% else %}
+                        <span class="badge bg-success">In Stock</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Price Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="card-title text-muted">Selling Price</h5>
+                            <h2 class="text-primary">${{ product.price }}</h2>
+                        </div>
+                        {% if product.cost_price %}
+                            <div class="col-md-6">
+                                <h5 class="card-title text-muted">Cost Price</h5>
+                                <h3>${{ product.cost_price }}</h3>
+                                <small class="text-success">Profit Margin: ${{ product.price|add:"-"|add:product.cost_price }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Information -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Stock Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Current Stock</label>
+                            <p class="fs-5">
+                                {% if product.stock > 0 %}
+                                    <span class="badge bg-success">{{ product.stock }} units</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Low Stock Threshold</label>
+                            <p class="fs-5">{{ product.low_stock_threshold }} units</p>
+                        </div>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"
+                             style="width: {% if product.low_stock_threshold %}{{ product.stock|add:product.low_stock_threshold|multiply:100|divide:product.low_stock_threshold }}%{% else %}100%{% endif %};"
+                             aria-valuenow="{{ product.stock }}" aria-valuemin="0"
+                             aria-valuemax="{{ product.low_stock_threshold }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Information -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Sales Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Total Sold</label>
+                            <p class="fs-5"><strong>{{ product.total_sold }} units</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if product.description %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Description</h5>
+                        <p class="card-text">{{ product.description }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Dates -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Created Date</label>
+                            <p>{{ product.created_at|date:"F d, Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Last Updated</label>
+                            <p>{{ product.updated_at|date:"F d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                <a href="{% url 'product_update' product.id %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Product
+                </a>
+                <form method="post" action="{% url 'product_delete' product.id %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Are you sure you want to delete this product? This action cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Product
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products Section -->
+    {% if related_products %}
+        <div class="mt-5">
+            <h3 class="mb-4">Related Products</h3>
+            <div class="row">
+                {% for related in related_products %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            {% if related.image %}
+                                <img src="{{ related.image.url }}" alt="{{ related.name }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-box fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ related.name }}</h5>
+                                <p class="card-text text-muted">{{ related.description|truncatewords:15 }}</p>
+                                <p class="fs-5 text-primary"><strong>${{ related.price }}</strong></p>
+                                {% if related.is_low_stock %}
+                                    <span class="badge bg-warning">Low Stock ({{ related.stock }})</span>
+                                {% elif related.stock == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ related.stock }} in Stock</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a href="{% url 'product_detail' related.id %}" class="btn btn-sm btn-primary w-100">
+                                    View Product
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

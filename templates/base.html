@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dr Apple Store{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div>
+                <i class="fas fa-truck"></i>
+                Free shipping on orders over $100
+            </div>
+
+            <div class="top-right">
+                <span><i class="fas fa-phone"></i> +234 xxx xxx xxxx</span>
+                <span><i class="fas fa-envelope"></i> support@drapplestore.com</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+
+            <div class="logo">
+                <i class="fab fa-apple"></i>
+                <div>
+                    <h2>Dr Apple</h2>
+                    <span>Store</span>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <select>
+                    <option>All Categories</option>
+                </select>
+
+                <input type="text" placeholder="Search for products...">
+
+                <button>
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div class="header-icons">
+                <a href="#"><i class="far fa-user"></i></a>
+                <a href="#"><i class="far fa-heart"></i></a>
+                <a href="#"><i class="fas fa-shopping-bag"></i></a>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="#">Products</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">Brands</a></li>
+                <li><a href="#">New Arrivals</a></li>
+                <li><a href="#">Best Sellers</a></li>
+                <li><a href="#">Deals</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+
+        </div>
+    </nav>
+
+
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-grid">
+
+            <div>
+                <h2>Dr Apple Store</h2>
+
+                <p>
+                    Your trusted destination for original Apple products
+                    and premium accessories.
+                </p>
+            </div>
+
+            <div>
+                <h3>Quick Links</h3>
+
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">Products</a></li>
+                    <li><a href="#">Categories</a></li>
+                    <li><a href="#">Brands</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Customer Service</h3>
+
+                <ul>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">FAQs</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Newsletter</h3>
+
+                <form class="newsletter">
+                    <input type="email" placeholder="Enter your email">
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr Apple Store. All Rights Reserved.
+        </div>
+
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product_list.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="products-grid">
+                   {% for product in products %}
+    <div class="product-card">
+        <img src="{{ product.image.url }}" alt="{{ product.name}}">
+        <h2>{{ product.name}}</h2>
+        <p>Category: {{ product.category.name}}</p>
+        <p>{{ product.price }}</p>
+        {% if user.is_authenticated %}
+    <a href="{% url 'toggle_wishlist' product.id %}" class="btn-wishlist">♡</a>
+{% endif %}
+        <a href="{% url 'product_detail' product.id %}">view detail</a>
+
+    </div>
+{% endfor %}
+        </div>
+{% endblock %}
