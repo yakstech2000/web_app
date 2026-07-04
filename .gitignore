@@ -1,0 +1,15 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+yaks_tech/Lib
+# virtual envirinment
+yaks_tech
+
+#Datbase
+db.sqlite3
+
+#media upload
+media
+
+#python cache
+__pycache__/
+*.py[cod]
+

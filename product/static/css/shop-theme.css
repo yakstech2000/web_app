@@ -1,0 +1,249 @@
+/* ==========================================================================
+   ShopLite — Shared Theme ("The Shelf Ledger")
+   Loaded on every page via base.html. Defines the site-wide design tokens
+   (fonts, colors) and restyles common Bootstrap components (buttons, form
+   controls, chips/badges, pagination, alerts) so every page — product list,
+   product detail, cart, and whatever comes next — looks like one product
+   instead of a patchwork of default Bootstrap pages.
+
+   Page-specific layout (grid columns, card structure, page-only sections)
+   stays out of this file and lives in that page's own stylesheet instead.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+  --sl-bg: #F7F6F2;
+  --sl-surface: #FFFFFF;
+  --sl-ink: #16241C;
+  --sl-ink-soft: #6B7570;
+  --sl-line: #E4E1D8;
+  --sl-accent: #C8912E;
+  --sl-green: #23422F;
+  --sl-green-hover: #1A3323;
+  --sl-red: #B23A2E;
+  --sl-out: #8B8579;
+  --sl-radius: 6px;
+
+  --sl-font-display: 'Fraunces', Georgia, serif;
+  --sl-font-body: 'Inter', -apple-system, sans-serif;
+  --sl-font-mono: 'IBM Plex Mono', monospace;
+}
+
+/* ---- page title convention: heading + short accent underline ---------- */
+
+.page-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  color: var(--sl-ink);
+  letter-spacing: -0.01em;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.page-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 38px;
+  height: 3px;
+  background: var(--sl-accent);
+}
+
+/* ---- buttons ------------------------------------------------------------ */
+
+main .btn-primary {
+  background: var(--sl-green);
+  border: 1px solid var(--sl-green);
+  border-radius: 4px;
+  font-weight: 600;
+  color: #fff;
+}
+
+main .btn-primary:hover,
+main .btn-primary:focus {
+  background: var(--sl-green-hover);
+  border-color: var(--sl-green-hover);
+  color: #fff;
+}
+
+main .btn-primary:disabled {
+  background: var(--sl-out);
+  border-color: var(--sl-out);
+}
+
+main .btn-outline-primary {
+  border: 1.3px solid var(--sl-ink);
+  color: var(--sl-ink);
+  border-radius: 4px;
+  font-weight: 600;
+  background: transparent;
+}
+
+main .btn-outline-primary:hover {
+  background: var(--sl-ink);
+  border-color: var(--sl-ink);
+  color: var(--sl-surface);
+}
+
+main .btn-outline-secondary {
+  border: 1.3px solid var(--sl-line);
+  color: var(--sl-ink-soft);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+main .btn-outline-secondary:hover {
+  background: var(--sl-bg);
+  border-color: var(--sl-ink);
+  color: var(--sl-ink);
+}
+
+main .btn-outline-danger {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ---- form controls -------------------------------------------------- */
+
+main .form-control,
+main .form-select {
+  border: 1px solid var(--sl-line);
+  border-radius: 4px;
+  font-family: var(--sl-font-body);
+  color: var(--sl-ink);
+}
+
+main .form-control:focus,
+main .form-select:focus {
+  border-color: var(--sl-green);
+  box-shadow: 0 0 0 3px rgba(35, 66, 47, 0.12);
+}
+
+/* ---- chips (category/brand) reused across product & cart pages ------- */
+
+main .chip,
+main .badge.bg-light {
+  background: var(--sl-bg) !important;
+  color: var(--sl-ink-soft) !important;
+  border: 1px solid var(--sl-line);
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.25em 0.5em;
+  border-radius: 2px;
+}
+
+/* ---- status badges (in stock / low stock / featured) ------------------ */
+
+main .badge.bg-danger,
+main .badge.bg-secondary,
+main .badge.bg-warning,
+main .badge.bg-success {
+  font-family: var(--sl-font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+main .badge.bg-danger { background: var(--sl-red) !important; }
+main .badge.bg-secondary { background: var(--sl-out) !important; }
+main .badge.bg-warning { background: var(--sl-accent) !important; color: var(--sl-ink) !important; }
+main .badge.bg-success { background: var(--sl-green) !important; }
+
+/* ---- the signature "stamped ticket" price look ------------------------ */
+
+main .price-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  color: var(--sl-ink);
+  background: linear-gradient(135deg, #F4E4BE 0%, var(--sl-accent) 100%);
+  padding: 0.28em 0.7em 0.28em 0.9em;
+  border-radius: 2px 10px 10px 2px;
+  position: relative;
+  width: fit-content;
+}
+
+main .price-tag::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sl-bg);
+  box-shadow: 0 0 0 1px rgba(22,36,28,0.25);
+}
+
+/* ---- alerts ------------------------------------------------------------ */
+
+main .alert-info {
+  background: var(--sl-surface);
+  border: 1px dashed var(--sl-line);
+  border-radius: var(--sl-radius);
+  color: var(--sl-ink);
+}
+
+main .alert-info i { color: var(--sl-accent); }
+
+main .alert-success {
+  background: #EAF2EC;
+  border: 1px solid #C7DBCC;
+  color: var(--sl-green);
+  border-radius: var(--sl-radius);
+}
+
+main .alert-danger,
+main .alert-error {
+  background: #F7E7E4;
+  border: 1px solid #E5BFB7;
+  color: var(--sl-red);
+  border-radius: var(--sl-radius);
+}
+
+/* ---- pagination (shared by any paginated page) ------------------------ */
+
+main .pagination .page-link {
+  border: 1px solid var(--sl-line);
+  color: var(--sl-ink);
+  font-family: var(--sl-font-mono);
+  font-size: 0.8rem;
+  border-radius: 3px !important;
+  margin: 0;
+}
+
+main .pagination .page-item.active .page-link {
+  background: var(--sl-green);
+  border-color: var(--sl-green);
+  color: var(--sl-surface);
+}
+
+main .pagination .page-item.disabled .page-link {
+  color: var(--sl-out);
+  background: transparent;
+}
+
+main .pagination .page-link:hover {
+  background: var(--sl-bg);
+  border-color: var(--sl-ink);
+}
+
+/* ---- accessibility ------------------------------------------------------ */
+
+main a:focus-visible,
+main button:focus-visible,
+main input:focus-visible,
+main select:focus-visible {
+  outline: 2px solid var(--sl-green);
+  outline-offset: 2px;
+}

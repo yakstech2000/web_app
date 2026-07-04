@@ -1,0 +1,178 @@
+/* ==========================================================================
+   ShopLite — Cart Page
+   Page-specific layout only. Colors/fonts/buttons/price-tag come from the
+   shared shop-theme.css loaded in base.html — this file just arranges the
+   cart rows and summary card.
+   ========================================================================== */
+
+/* ---- cart item list ----------------------------------------------------- */
+
+.cart-list {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  overflow: hidden;
+}
+
+.cart-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--sl-line);
+  flex-wrap: wrap;
+}
+
+.cart-row:last-child {
+  border-bottom: none;
+}
+
+.cart-thumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: #EFEDE6;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cart-info {
+  flex: 1 1 180px;
+  min-width: 140px;
+}
+
+.cart-name {
+  display: block;
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--sl-ink);
+  text-decoration: none;
+}
+
+.cart-name:hover {
+  color: var(--sl-green);
+  text-decoration: underline;
+}
+
+.cart-unit-price {
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  color: var(--sl-ink-soft);
+  margin-top: 0.15rem;
+}
+
+.cart-qty-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.cart-qty-input {
+  width: 64px;
+  text-align: center;
+}
+
+.cart-subtotal {
+  font-size: 0.92rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.cart-remove-form {
+  flex-shrink: 0;
+}
+
+/* ---- order summary card -------------------------------------------------- */
+
+.cart-summary {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  padding: 1.25rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.cart-summary-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--sl-ink);
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--sl-line);
+}
+
+.cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--sl-ink-soft);
+  margin-bottom: 0.6rem;
+}
+
+.cart-summary-total {
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--sl-line);
+  color: var(--sl-ink);
+  font-weight: 600;
+}
+
+/* ---- empty state --------------------------------------------------------- */
+
+.cart-empty {
+  padding: 3rem 1.5rem;
+}
+
+/* ---- responsive ----------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .cart-row {
+    position: relative;
+    padding-right: 3rem;
+  }
+
+  .cart-subtotal {
+    margin-left: 0;
+    order: 3;
+  }
+
+  .cart-remove-form {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+  }
+
+  .cart-qty-form {
+    order: 2;
+  }
+
+  .cart-summary {
+    position: static;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-thumb {
+    width: 52px;
+    height: 52px;
+  }
+
+  .cart-name {
+    font-size: 0.86rem;
+  }
+}

@@ -1,0 +1,237 @@
+/* ==========================================================================
+   ShopLite — Product Detail
+   Page-specific layout only. Colors/fonts/buttons/badges/price-tag come
+   from shop-theme.css (loaded in base.html) — this file arranges the
+   gallery, price card, related products, and reviews.
+   ========================================================================== */
+
+/* ---- breadcrumb ---------------------------------------------------------- */
+
+.detail-breadcrumb .breadcrumb {
+  font-family: var(--sl-font-mono);
+  font-size: 0.78rem;
+}
+
+.detail-breadcrumb a {
+  color: var(--sl-ink-soft);
+  text-decoration: none;
+}
+
+.detail-breadcrumb a:hover {
+  color: var(--sl-green);
+  text-decoration: underline;
+}
+
+.detail-breadcrumb .active {
+  color: var(--sl-ink);
+}
+
+/* ---- image gallery -------------------------------------------------------- */
+
+.detail-image-frame {
+  position: relative;
+  height: 400px;
+  background: #EFEDE6;
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  overflow: hidden;
+}
+
+.detail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-thumbs {
+  flex-wrap: wrap;
+}
+
+.detail-thumb {
+  width: 76px;
+  height: 76px;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--sl-line);
+  flex-shrink: 0;
+  transition: border-color 0.15s ease;
+}
+
+.detail-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-thumb.active,
+.detail-thumb:hover {
+  border-color: var(--sl-green);
+}
+
+/* ---- title & section headings --------------------------------------------- */
+
+.detail-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  color: var(--sl-ink);
+  letter-spacing: -0.01em;
+}
+
+.detail-review-count {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8rem;
+  color: var(--sl-ink-soft);
+}
+
+.detail-section-heading {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  color: var(--sl-ink);
+  position: relative;
+  padding-bottom: 0.4rem;
+}
+
+.detail-section-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 30px;
+  height: 3px;
+  background: var(--sl-accent);
+}
+
+.detail-section-divider {
+  border-top: 1px solid var(--sl-line);
+}
+
+/* ---- price card ------------------------------------------------------------ */
+
+.detail-price-card {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  padding: 1.25rem;
+}
+
+.detail-price-label {
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sl-ink-soft);
+  margin-bottom: 0.3rem;
+}
+
+.price-tag-lg {
+  font-size: 1.4rem;
+}
+
+.price-tag-sm {
+  font-size: 0.78rem;
+  padding: 0.2em 0.5em 0.2em 0.7em;
+}
+
+.detail-stock-count {
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  color: var(--sl-green);
+}
+
+.detail-meta {
+  border-top: 1px dashed var(--sl-line);
+}
+
+/* ---- related products ------------------------------------------------------ */
+
+.related-card {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.related-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px -10px rgba(22, 36, 28, 0.35);
+}
+
+.related-card-image {
+  height: 130px;
+  background: #EFEDE6;
+  overflow: hidden;
+}
+
+.related-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.related-card-body {
+  padding: 0.6rem;
+}
+
+.related-card-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--sl-ink);
+  margin-bottom: 0.35rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- reviews ---------------------------------------------------------------- */
+
+.review-row {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--sl-line);
+}
+
+.review-row:last-child {
+  border-bottom: none;
+}
+
+.review-author {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  color: var(--sl-ink);
+}
+
+.review-date {
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  color: var(--sl-ink-soft);
+}
+
+.review-image {
+  border-radius: 4px;
+  max-width: 100px;
+  max-height: 100px;
+  border: 1px solid var(--sl-line);
+}
+
+/* ---- responsive -------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .detail-image-frame { height: 280px; }
+  .detail-thumb { width: 60px; height: 60px; }
+  .detail-price-card { padding: 1rem; }
+  .price-tag-lg { font-size: 1.15rem; }
+}
+
+@media (max-width: 480px) {
+  .detail-image-frame { height: 230px; }
+}

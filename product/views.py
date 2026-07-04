@@ -67,32 +67,32 @@ def product_detail(request, pk):
 
     return render(request, 'products/product_detail.html', context)
 
-""""""
+
 @login_required
 def product_create(request):
     """Create a new product"""
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
-        price = request.POST.get('price')
-        cost_price = request.POST.get('cost_price')
-        stock = request.POST.get('stock')
-        low_stock_threshold = request.POST.get('low_stock_threshold', 10)
+        selling_price = request.POST.get('selling_price')
+        stock_quantity = request.POST.get('stock_quantity')
         category_id = request.POST.get('category')
         brand_id = request.POST.get('brand')
-        image = request.FILES.get('image')
+        product_image = request.FILES.get('product_image')
+        is_available = request.POST.get('is_available', True)
+        is_featured = request.POST.get('is_featured', False)
 
         try:
             product = Product.objects.create(
                 name=name,
                 description=description,
-                price=price,
-                cost_price=cost_price or None,
-                stock=stock,
-                low_stock_threshold=low_stock_threshold,
+                selling_price=selling_price,
+                stock_quantity=stock_quantity,
                 category_id=category_id or None,
                 brand_id=brand_id or None,
-                image=image
+                product_image=product_image,
+                is_available=is_available,
+                is_featured=is_featured
             )
             messages.success(request, f'Product "{product.name}" created successfully!')
             return redirect('product_detail', pk=product.pk)
@@ -118,10 +118,10 @@ def product_update(request, pk):
     if request.method == 'POST':
         product.name = request.POST.get('name', product.name)
         product.description = request.POST.get('description', product.description)
-        product.price = request.POST.get('price', product.price)
-        product.cost_price = request.POST.get('cost_price') or None
-        product.stock = request.POST.get('stock', product.stock)
-        product.low_stock_threshold = request.POST.get('low_stock_threshold', product.low_stock_threshold)
+        product.selling_price = request.POST.get('selling_price', product.selling_price)
+        product.stock_quantity = request.POST.get('stock_quantity', product.stock_quantity)
+        product.is_available = request.POST.get('is_available', product.is_available)
+        product.is_featured = request.POST.get('is_featured', product.is_featured)
 
         category_id = request.POST.get('category')
         product.category_id = category_id or None
@@ -129,8 +129,8 @@ def product_update(request, pk):
         brand_id = request.POST.get('brand')
         product.brand_id = brand_id or None
 
-        if request.FILES.get('image'):
-            product.image = request.FILES.get('image')
+        if request.FILES.get('product_image'):
+            product.product_image = request.FILES.get('product_image')
 
         try:
             product.save()
@@ -170,9 +170,7 @@ def product_delete(request, pk):
 @login_required
 def low_stock_products(request):
     """Display products with low stock"""
-    from django.db.models import F
-
-    products = Product.objects.filter(stock__lte=F('low_stock_threshold')).order_by('stock')
+    products = Product.objects.filter(is_low_stock=True).order_by('stock_quantity')
 
     paginator = Paginator(products, 10)
     page_number = request.GET.get('page')
@@ -193,7 +191,7 @@ def best_selling_products(request):
     from django.db.models import Count
 
     products = Product.objects.annotate(
-        total_sold=Count('order_items')
+        total_sold=Count('reviews')
     ).order_by('-total_sold')
 
     paginator = Paginator(products, 10)
@@ -206,16 +204,14 @@ def best_selling_products(request):
         'title': 'Best Selling Products',
     }
 
-
     return render(request, 'products/best_selling_products.html', context)
 
 
-# Create your views here
-
-
 def base(request):
-
+    """Render base template"""
     return render(request, 'base.html')
-def home(request):
 
+
+def home(request):
+    """Render home template"""
     return render(request, 'home.html')

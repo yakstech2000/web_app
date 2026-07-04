@@ -1,25 +1,177 @@
 {% extends 'base.html' %}
 
-{% load static %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/product_list.css' %}">
-{% endblock %}
+{% block title %}Products{% endblock %}
 
 {% block content %}
-        <div class="products-grid">
-                   {% for product in products %}
-    <div class="product-card">
-        <img src="{{ product.image.url }}" alt="{{ product.name}}">
-        <h2>{{ product.name}}</h2>
-        <p>Category: {{ product.category.name}}</p>
-        <p>{{ product.price }}</p>
-        {% if user.is_authenticated %}
-    <a href="{% url 'toggle_wishlist' product.id %}" class="btn-wishlist">♡</a>
-{% endif %}
-        <a href="{% url 'product_detail' product.id %}">view detail</a>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/product_list.css'%}">
 
-    </div>
-{% endfor %}
+<div class="container-fluid px-3 px-lg-4 mt-4 mt-md-5">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h1 class="mb-0">Products</h1>
         </div>
+    </div>
+
+
+
+                <!-- Brand Filter -->
+                <div class="col-4 col-md-3">
+                    <select name="brand" class="form-select">
+                        <option value="">All Brands</option>
+                        {% for brand in brands %}
+                            <option value="{{ brand.id }}" {% if brand.id|stringformat:"s" == selected_brand %}selected{% endif %}>
+                                {{ brand.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <div class="col-2 col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="row g-2 g-md-3">
+        {% for product in products %}
+        <div class="col-6 col-sm-4 col-lg-3 col-xxl-2">
+            <div class="card product-card h-100">
+                <!-- Product Image -->
+                <div class="product-image-container">
+                    {% if product.product_image %}
+                        <img
+                            src="{{ product.product_image.url }}"
+                            alt="{{ product.name }}"
+                            class="product-img"
+                        >
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                    {% endif %}
+
+                    <!-- Product Badge -->
+                    {% if product.is_featured %}
+                    <span class="badge bg-danger product-badge product-badge-end">Featured</span>
+                    {% endif %}
+
+                    <!-- Stock Status Badge -->
+                    {% if not product.is_available %}
+                    <span class="badge bg-secondary product-badge product-badge-start">Out of Stock</span>
+                    {% elif product.is_low_stock %}
+                    <span class="badge bg-warning product-badge product-badge-start">Low Stock</span>
+                    {% else %}
+                    <span class="badge bg-success product-badge product-badge-start">In Stock</span>
+                    {% endif %}
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body d-flex flex-column">
+                    <!-- Category & Brand -->
+                    <div class="product-chips mb-1">
+                        <span class="badge bg-light text-dark">{{ product.category.name }}</span>
+                        <span class="badge bg-light text-dark">{{ product.brand.name }}</span>
+                    </div>
+
+                    <!-- Product Name -->
+                    <h5 class="card-title product-title">{{ product.name }}</h5>
+
+                    <!-- Product Description -->
+                    <p class="card-text text-muted product-desc">
+                        {{ product.description|truncatewords:12 }}
+                    </p>
+
+                    <!-- Stock Info -->
+                    <div class="product-stock">
+                        <strong>Stock:</strong> {{ product.stock_quantity }} units
+                    </div>
+
+                    <!-- Footer: price + button, pinned to bottom -->
+                    <div class="product-footer mt-auto">
+                        <div class="product-price">${{ product.selling_price }}</div>
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm w-100">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center flex-wrap">
+            <!-- First Page -->
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">First</a>
+                </li>
+            {% endif %}
+
+            <!-- Previous Page -->
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">Previous</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next Page -->
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">Next</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            {% endif %}
+
+            <!-- Last Page -->
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- No Products Found -->
+    <div class="alert alert-info text-center" role="alert">
+        <i class="fas fa-info-circle"></i>
+        <strong>No products found.</strong>
+        {% if search_query or selected_category or selected_brand %}
+            <p class="mt-2">Try adjusting your search or filters.</p>
+        {% else %}
+            <p class="mt-2">Start by adding some products.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
 {% endblock %}
