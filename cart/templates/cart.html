@@ -3,6 +3,7 @@
 {% block title %}Your Cart{% endblock %}
 
 {% block content %}
+{% load humanize %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
 
@@ -32,7 +33,7 @@
 
                     <div class="cart-info">
                         <a href="{% url 'product_detail' item.product.id %}" class="cart-name">{{ item.product.name }}</a>
-                        <div class="cart-unit-price">${{ item.product.selling_price }} each</div>
+                        <div class="cart-unit-price">₦{{ item.product.selling_price }} each</div>
                     </div>
 
                     <form method="post" action="{% url 'cart_update' item.id %}" class="cart-qty-form">
@@ -41,7 +42,7 @@
                         <button type="submit" class="btn btn-outline-secondary btn-sm">Update</button>
                     </form>
 
-                    <div class="cart-subtotal price-tag">${{ item.get_subtotal }}</div>
+                    <div class="cart-subtotal price-tag">₦{{ item.get_subtotal|intcomma }}</div>
 
                     <form method="post" action="{% url 'cart_remove' item.id %}" class="cart-remove-form">
                         {% csrf_token %}
@@ -65,12 +66,10 @@
                 </div>
                 <div class="cart-summary-row cart-summary-total">
                     <span>Total</span>
-                    <strong class="price-tag">${{ total_price }}</strong>
+                    <strong class="price-tag">₦{{ total_price|intcomma }}</strong>
                 </div>
 
-                <button class="btn btn-primary w-100 mt-3" disabled>Proceed to Checkout</button>
-                <small class="text-muted d-block mt-2">Checkout isn't built yet.</small>
-
+               <a href="{% url 'checkout' %}" class="btn btn-primary w-100 mt-3">Proceed to Checkout</a>
                 <a href="{% url 'product_list' %}" class="btn btn-outline-secondary w-100 mt-2">Continue Shopping</a>
             </div>
         </div>

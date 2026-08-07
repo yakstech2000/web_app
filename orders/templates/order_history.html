@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders{% endblock %}
+{% block content %}
+{% load humanize %}
+<div class="container mt-5 mb-5">
+    <h1 class="page-title mb-4">My Orders</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if orders %}
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Order Number</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <strong>{{ order.order_number }}</strong>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                {{ order.get_total_items }} item{{ order.get_total_items|pluralize }}
+                            </td>
+                            <td>
+                                <span class="price-tag">₦{{ order.total_price|intcomma }}</span>
+                            </td>
+                            <td>
+                                <small>
+                                    {% if order.payment_method == 'bank_transfer' %}
+                                        Bank Transfer
+                                    {% elif order.payment_method == 'paystack' %}
+                                        Paystack
+                                    {% elif order.payment_method == 'whatsapp' %}
+                                        WhatsApp
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'paid' %}bg-info{% elif order.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info text-center" role="alert">
+        <i class="fas fa-inbox fa-2x mb-2"></i>
+        <strong class="d-block">No orders yet.</strong>
+        <p class="mt-2 mb-0"><a href="{% url 'product_list' %}">Browse products</a> to place your first order!</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

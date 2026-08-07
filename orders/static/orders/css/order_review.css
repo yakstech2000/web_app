@@ -1,0 +1,250 @@
+/* ==========================================================
+   Order Review — Black / Red / White / Gray theme
+   Matches confirm_payment.css. Save as static/css/order_review.css
+   (the template already links to this exact path).
+   Targets only the classes already present in order_review.html —
+   no HTML structure required or assumed.
+   ========================================================== */
+
+:root {
+    --pay-black: #1a1a1a;
+    --pay-red: #c41e3a;
+    --pay-red-dark: #a3172e;
+    --pay-white: #ffffff;
+    --pay-gray-50: #f7f7f7;
+    --pay-gray-100: #eeeeee;
+    --pay-gray-300: #d4d4d4;
+    --pay-gray-500: #8a8a8a;
+    --pay-gray-700: #4a4a4a;
+    --wa-green: #25d366;
+    --wa-green-tint: #eafbf1;
+}
+
+.page-title {
+    color: var(--pay-black);
+    font-weight: 700;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--pay-red);
+    display: inline-block;
+}
+
+/* ---------- Cards ---------- */
+.review-card {
+    background: var(--pay-white);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+.review-card-header {
+    background: var(--pay-gray-50);
+    border-bottom: 2px solid var(--pay-black);
+    padding: 1rem 1.5rem;
+}
+.review-card-title {
+    margin: 0;
+    color: var(--pay-black);
+    font-weight: 600;
+}
+.review-card-body {
+    padding: 1.5rem;
+    color: var(--pay-gray-700);
+}
+
+/* ---------- Shipping info rows ---------- */
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--pay-gray-100);
+}
+.review-row:last-child {
+    border-bottom: none;
+}
+.review-label {
+    color: var(--pay-gray-500);
+    font-weight: 500;
+}
+.review-value {
+    color: var(--pay-black);
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ---------- Order items ---------- */
+.review-items {
+    padding: 0.5rem 1.5rem 1rem;
+}
+.review-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--pay-gray-100);
+}
+.review-item:last-child {
+    border-bottom: none;
+}
+.review-item-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.review-item-name {
+    color: var(--pay-black);
+    font-weight: 600;
+}
+.review-item-qty {
+    color: var(--pay-gray-500);
+    font-size: 0.85rem;
+}
+.review-item-price {
+    color: var(--pay-gray-700);
+    min-width: 70px;
+    text-align: right;
+}
+.review-item-subtotal {
+    color: var(--pay-red);
+    font-weight: 700;
+    min-width: 80px;
+    text-align: right;
+}
+
+/* ---------- Payment method options ---------- */
+.payment-option {
+    position: relative;
+    margin-bottom: 1rem;
+}
+.payment-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+.payment-option-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--pay-gray-300);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--pay-white);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.payment-option-label:hover {
+    border-color: var(--pay-gray-500);
+    background: var(--pay-gray-50);
+}
+.payment-option-icon {
+    font-size: 1.5rem;
+    min-width: 36px;
+    text-align: center;
+}
+.payment-option-text strong {
+    display: block;
+    color: var(--pay-black);
+    margin-bottom: 0.15rem;
+}
+.payment-option-text p {
+    margin: 0;
+    color: var(--pay-gray-500);
+    font-size: 0.85rem;
+}
+
+/* Selected state — default (Paystack, Bank Transfer) uses red */
+.payment-option input[type="radio"]:checked + .payment-option-label {
+    border-color: var(--pay-red);
+    background: #fdeef1;
+}
+
+/* WhatsApp keeps its brand green when selected, same exception as
+   confirm_payment.css */
+#whatsapp:checked + .payment-option-label {
+    border-color: var(--wa-green);
+    background: var(--wa-green-tint);
+}
+
+/* WhatsApp icon is always brand green, selected or not */
+label[for="whatsapp"] .payment-option-icon {
+    color: var(--wa-green);
+}
+
+/* Focus ring for keyboard navigation */
+.payment-option input[type="radio"]:focus-visible + .payment-option-label {
+    outline: 2px solid var(--pay-black);
+    outline-offset: 2px;
+}
+
+/* ---------- Order summary sidebar ---------- */
+.review-summary {
+    background: var(--pay-white);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+}
+.review-summary-title {
+    color: var(--pay-gray-500);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.4rem;
+}
+.review-summary-order-number {
+    color: var(--pay-black);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+.review-summary-total {
+    border-top: 1px solid var(--pay-gray-100);
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+}
+.review-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    color: var(--pay-gray-700);
+}
+.review-summary-final {
+    border-top: 2px solid var(--pay-black);
+    margin-top: 0.4rem;
+    padding-top: 0.75rem;
+    font-weight: 700;
+}
+
+/* ---------- Price tags (shared with confirm_payment) ---------- */
+.price-tag {
+    color: var(--pay-red);
+    font-weight: 700;
+}
+.price-tag-lg {
+    font-size: 1.6rem;
+    color: var(--pay-red);
+    font-weight: 700;
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+    background: var(--pay-black);
+    border-color: var(--pay-black);
+    color: var(--pay-white);
+    font-weight: 600;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    background: var(--pay-red);
+    border-color: var(--pay-red);
+}
+
+.btn-outline-secondary {
+    color: var(--pay-gray-700);
+    border-color: var(--pay-gray-300);
+    background: var(--pay-white);
+}
+.btn-outline-secondary:hover {
+    background: var(--pay-gray-100);
+    color: var(--pay-black);
+    border-color: var(--pay-gray-500);
+}

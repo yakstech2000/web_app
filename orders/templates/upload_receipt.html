@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Payment Receipt{% endblock %}
+
+{% block content %}
+{% load humanize %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <h1 class="page-title mb-4">Upload Payment Receipt</h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Order {{ order.order_number }}</h5>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 1rem;">
+                        <span style="color: var(--sl-ink-soft);">Payment Method:</span>
+                        <span style="font-weight: 600; text-transform: capitalize;">
+                            {% if order.payment_method == 'bank_transfer' %}
+                                Bank Transfer
+                            {% elif order.payment_method == 'whatsapp' %}
+                                WhatsApp
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div>
+                        <span style="color: var(--sl-ink-soft);">Total Amount:</span>
+                        <span class="price-tag">₦{{ order.total_price|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Instructions -->
+            <div class="alert alert-info mb-4">
+                <strong>📸 Upload Your Receipt</strong><br>
+                Please upload a screenshot or image of your payment receipt/confirmation as proof of payment.
+                <br><br>
+                <small>This helps us verify and confirm your payment quickly.</small>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card border-0">
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label for="receipt" class="form-label">
+                                <i class="fas fa-upload"></i> Choose Receipt Image
+                            </label>
+                            <input
+                                type="file"
+                                class="form-control"
+                                id="receipt"
+                                name="receipt"
+                                accept="image/*,.pdf"
+                                required
+                            >
+                            <small class="text-muted d-block mt-2">
+                                Supported formats: PNG, JPG, GIF, PDF (Max 5MB)
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                            <textarea
+                                class="form-control"
+                                id="notes"
+                                name="notes"
+                                rows="3"
+                                placeholder="e.g., Transfer reference number, bank name, etc."
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-check"></i> Upload Receipt
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="alert alert-light mt-4">
+                <small class="text-muted">
+                    <strong>Need help?</strong> Contact support at support@drapplestore.com or call +234 xxx xxx xxxx
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}My Reviews - Dr Apple Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <h1 class="mb-4">My Reviews</h1>
+
+    {% if reviewable_items %}
+    <h5 class="mb-3">Awaiting Your Review</h5>
+    {% for entry in reviewable_items %}
+    <div class="card mb-3 shadow-sm border-warning">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h6 class="mb-1">📱 {{ entry.item.product_name }}</h6>
+                <small class="text-muted">Order {{ entry.order.order_number }}</small>
+            </div>
+            <a href="{% url 'write_review' entry.order.id entry.item.product_id %}" class="btn btn-sm btn-primary mt-2 mt-sm-0">Write Review</a>
+        </div>
+    </div>
+    {% endfor %}
+    <hr class="my-4">
+    {% endif %}
+
+    <h5 class="mb-3">Submitted Reviews</h5>
+
+    {% if reviews %}
+        {% for review in reviews %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                    <div>
+                        <h5 class="card-title mb-1">📱 {{ review.product.name }}</h5>
+                        <div class="mb-2">
+                            {% for i in "12345" %}
+                                {% if i|add:"0" <= review.rating %}
+                                    <span style="color: #ffc107;">⭐</span>
+                                {% else %}
+                                    <span style="color: #e0e0e0;">☆</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        Submitted: {{ review.created_at|date:"F j, Y" }}
+                    </small>
+                </div>
+
+                {% if review.title %}
+                <h6 class="mb-1">{{ review.title }}</h6>
+                {% endif %}
+                <p class="text-muted mb-3">{{ review.review_text }}</p>
+
+                {% if review.image %}
+                <img src="{{ review.image.url }}" alt="Review photo" class="mb-3" style="max-width: 150px; border-radius: 8px;">
+                {% endif %}
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'edit_review' review.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form method="post" action="{% url 'delete_review' review.id %}" onsubmit="return confirm('Delete this review? This cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <h5 class="mb-2">📝 No Reviews Yet</h5>
+        <p class="mb-0">Reviews you write will show up here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

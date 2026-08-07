@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Delete Account - Dr Apple Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+            <div class="card shadow border-danger">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4 text-danger">⚠️ Delete Account</h2>
+
+                    <div class="alert alert-danger">
+                        <strong>Warning:</strong> This action cannot be undone. All your data will be permanently deleted.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg w-100">Delete My Account</button>
+                    </form>
+
+                    <hr class="my-4">
+                    <p class="text-center"><a href="{% url 'account:dashboard' %}">Cancel</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

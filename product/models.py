@@ -27,6 +27,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
 
     class Meta:
         verbose_name = "Category"

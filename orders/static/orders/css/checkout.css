@@ -1,0 +1,120 @@
+/* ==========================================================================
+   ShopLite — Checkout Page
+   Page-specific layout. Colors/fonts/buttons come from shop-theme.css.
+   ========================================================================== */
+
+.checkout-card {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  padding: 1.5rem;
+}
+
+.checkout-section-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--sl-ink);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--sl-line);
+}
+
+.checkout-form .form-group {
+  margin-bottom: 1.1rem;
+}
+
+.checkout-form .form-label {
+  font-family: var(--sl-font-body);
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--sl-ink);
+  margin-bottom: 0.4rem;
+}
+
+/* ---- checkout summary ---------------------------------------------------- */
+
+.checkout-summary {
+  background: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  padding: 1.25rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.checkout-summary-title {
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--sl-ink);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--sl-line);
+}
+
+.checkout-items {
+  margin-bottom: 1rem;
+}
+
+.checkout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--sl-line);
+}
+
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+.checkout-item-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.checkout-item-qty {
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  color: var(--sl-ink-soft);
+}
+
+.checkout-item-price {
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  color: var(--sl-ink);
+  margin-left: 0.5rem;
+}
+
+.checkout-divider {
+  height: 1px;
+  background: var(--sl-line);
+  margin: 1rem 0;
+}
+
+.checkout-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--sl-ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+.checkout-total-amount {
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--sl-line);
+  color: var(--sl-ink);
+  font-weight: 600;
+}
+
+/* ---- responsive ----------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .checkout-summary {
+    position: static;
+    margin-top: 1.5rem;
+  }
+}

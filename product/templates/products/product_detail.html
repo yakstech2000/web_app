@@ -3,8 +3,10 @@
 {% block title %}{{ product.name }} - Product Details{% endblock %}
 
 {% block content %}
+{% load humanize %}
  {% load static %}
     <link rel="stylesheet" href="{% static 'css/product_detail.css'%}">
+    <link rel="stylesheet" href="{% static 'css/skeleton-loader.css' %}">
 
 <div class="container mt-5 mb-5">
     <!-- Breadcrumb Navigation -->
@@ -23,14 +25,15 @@
         <div class="col-md-6 mb-4">
             <div class="card border-0">
                 <!-- Main Image -->
-                <div class="position-relative mb-3" style="height: 400px; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+                <div class="position-relative mb-3 skeleton-shimmer" style="height: 400px; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
                     {% if product.product_image %}
                         <img
                             id="mainImage"
                             src="{{ product.product_image.url }}"
                             alt="{{ product.name }}"
-                            class="w-100 h-100"
+                            class="w-100 h-100 skeleton-fade"
                             style="object-fit: cover;"
+                            onload="this.classList.add('is-loaded')"
                         >
                     {% else %}
                         <div class="d-flex align-items-center justify-content-center h-100">
@@ -56,37 +59,40 @@
                 <!-- Thumbnail Gallery -->
                 <div class="d-flex gap-2">
                     {% if product.product_image %}
-                        <div class="flex-shrink-0" style="cursor: pointer;">
+                        <div class="flex-shrink-0 skeleton-shimmer" style="cursor: pointer; border-radius: 4px; overflow: hidden;">
                             <img
                                 src="{{ product.product_image.url }}"
                                 alt="Thumbnail 1"
-                                class="border rounded"
+                                class="border rounded skeleton-fade"
                                 style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #007bff;"
                                 onclick="changeImage('{{ product.product_image.url }}')"
+                                onload="this.classList.add('is-loaded')"
                             >
                         </div>
                     {% endif %}
 
                     {% if product.product_image_2 %}
-                        <div class="flex-shrink-0" style="cursor: pointer;">
+                        <div class="flex-shrink-0 skeleton-shimmer" style="cursor: pointer; border-radius: 4px; overflow: hidden;">
                             <img
                                 src="{{ product.product_image_2.url }}"
                                 alt="Thumbnail 2"
-                                class="border rounded"
+                                class="border rounded skeleton-fade"
                                 style="width: 80px; height: 80px; object-fit: cover;"
                                 onclick="changeImage('{{ product.product_image_2.url }}')"
+                                onload="this.classList.add('is-loaded')"
                             >
                         </div>
                     {% endif %}
 
                     {% if product.product_image_3 %}
-                        <div class="flex-shrink-0" style="cursor: pointer;">
+                        <div class="flex-shrink-0 skeleton-shimmer" style="cursor: pointer; border-radius: 4px; overflow: hidden;">
                             <img
                                 src="{{ product.product_image_3.url }}"
                                 alt="Thumbnail 3"
-                                class="border rounded"
+                                class="border rounded skeleton-fade"
                                 style="width: 80px; height: 80px; object-fit: cover;"
                                 onclick="changeImage('{{ product.product_image_3.url }}')"
+                                onload="this.classList.add('is-loaded')"
                             >
                         </div>
                     {% endif %}
@@ -123,7 +129,7 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="text-muted small">Selling Price</div>
-                        <h2 class="text-primary mb-0">${{ product.selling_price }}</h2>
+                        <h2 class="text-primary mb-0">₦{{ product.selling_price|intcomma }}</h2>
                     </div>
                     <div class="col-6 text-end">
                         <div class="text-muted small">Stock Available</div>
@@ -141,9 +147,11 @@
             <!-- Action Buttons -->
             <div class="d-grid gap-2 mb-4">
                 {% if product.is_available and product.stock_quantity > 0 %}
+
                     <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addToCartModal">
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
+
                     <button class="btn btn-outline-danger btn-lg">
                         <i class="fas fa-heart"></i> Add to Wishlist
                     </button>
@@ -166,7 +174,7 @@
         </div>
     </div>
 
-    <!-- Related Products Section -->
+
     {% if related_products %}
     <div class="row mt-5 pt-4 border-top">
         <div class="col-12">
@@ -176,13 +184,14 @@
         {% for related in related_products %}
         <div class="col-md-2 col-sm-4 col-6 mb-3">
             <div class="card h-100 shadow-sm">
-                <div style="height: 150px; background: #f8f9fa; overflow: hidden;">
+                <div class="skeleton-shimmer" style="height: 150px; background: #f8f9fa; overflow: hidden;">
                     {% if related.product_image %}
                         <img
                             src="{{ related.product_image.url }}"
                             alt="{{ related.name }}"
-                            class="w-100 h-100"
+                            class="w-100 h-100 skeleton-fade"
                             style="object-fit: cover;"
+                            onload="this.classList.add('is-loaded')"
                         >
                     {% else %}
                         <div class="d-flex align-items-center justify-content-center h-100">
@@ -192,7 +201,7 @@
                 </div>
                 <div class="card-body p-2">
                     <h6 class="card-title small">{{ related.name|truncatewords:5 }}</h6>
-                    <p class="text-primary mb-2 small"><strong>${{ related.selling_price }}</strong></p>
+                    <p class="text-primary mb-2 small"><strong>₦{{ related.selling_price|intcomma }}</strong></p>
                     <a href="{% url 'product_detail' related.id %}" class="btn btn-sm btn-outline-primary w-100">
                         View
                     </a>
@@ -202,50 +211,6 @@
         {% endfor %}
     </div>
     {% endif %}
-
-    <!-- Reviews Section -->
-    <div class="row mt-5 pt-4 border-top">
-        <div class="col-12">
-            <h3 class="mb-4">Customer Reviews</h3>
-        </div>
-
-        {% if product.reviews.count > 0 %}
-            <div class="col-12">
-                {% for review in product.reviews.all %}
-                <div class="card mb-3 border-0 border-bottom">
-                    <div class="card-body pb-3">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1">{{ review.customer }}</h6>
-                                <div class="text-warning small mb-2">
-                                    {% for i in "12345" %}
-                                        {% if i|add:"0" <= review.rating %}
-                                            <i class="fas fa-star"></i>
-                                        {% else %}
-                                            <i class="far fa-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
-                        </div>
-                        <p class="mb-0">{{ review.review_text }}</p>
-                        {% if review.review_image %}
-                            <img src="{{ review.review_image.url }}" alt="Review" class="mt-2" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info" role="alert">
-                    <i class="fas fa-info-circle"></i> No reviews yet. Be the first to review!
-                </div>
-            </div>
-        {% endif %}
-    </div>
-</div>
 
 <!-- Add to Cart Modal -->
 <div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartLabel" aria-hidden="true">
@@ -263,8 +228,8 @@
                         <input type="number" name="quantity" class="form-control" id="quantity" min="1" max="{{ product.stock_quantity }}" value="1">
                     </div>
                     <div class="alert alert-info">
-                        <strong>Price per unit:</strong> ${{ product.selling_price }}<br>
-                        <strong id="totalPrice">Total: ${{ product.selling_price }}</strong>
+                        <strong>Price per unit:</strong> ₦{{ product.selling_price|intcomma }}<br>
+                        <strong id="totalPrice">Total: ₦{{ product.selling_price|intcomma }}</strong>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -294,7 +259,7 @@
 
         const unitPrice = {{ product.selling_price }};
         const totalPrice = (quantity * unitPrice).toFixed(2);
-        document.getElementById('totalPrice').textContent = `Total: $${totalPrice}`;
+        document.getElementById('totalPrice').textContent = `Total: ₦{totalPrice}`;
     });
 </script>
 {% endblock %}

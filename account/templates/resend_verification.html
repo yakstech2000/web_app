@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Resend Verification - Dr Apple Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                 {% extends "base.html" %}
+
+                    <div class="container">
+                      <h2>Verify your email</h2>
+                      <p>We sent a verification link to <strong>{{ user.email }}</strong>. Click it to activate your account.</p>
+
+                      <form method="post" id="resend-form">
+                        {% csrf_token %}
+                        <button type="submit" id="resend-btn" {% if cooldown_remaining > 0 %}disabled{% endif %}>
+                          Resend verification email
+                        </button>
+                        <p id="cooldown-text" style="{% if cooldown_remaining == 0 %}display:none;{% endif %}">
+                          You can resend in <span id="countdown">{{ cooldown_remaining }}</span>s
+                        </p>
+                      </form>
+                    </div>
+
+                    <script>
+                      let remaining = {{ cooldown_remaining }};
+                      const btn = document.getElementById('resend-btn');
+                      const text = document.getElementById('cooldown-text');
+                      const countEl = document.getElementById('countdown');
+
+                      if (remaining > 0) {
+                        const timer = setInterval(() => {
+                          remaining -= 1;
+                          countEl.textContent = remaining;
+                          if (remaining <= 0) {
+                            clearInterval(timer);
+                            btn.disabled = false;
+                            text.style.display = 'none';
+                          }
+                        }, 1000);
+                      }
+                    </script>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

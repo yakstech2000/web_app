@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: #23422F; color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { padding: 30px; }
+        .pickup-box { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .items-list { background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .item { padding: 8px 0; border-bottom: 1px solid #ddd; }
+        .item:last-child { border-bottom: none; }
+        .address-box { background: #f9f9f9; padding: 15px; border-left: 4px solid #C8912E; margin: 20px 0; }
+        .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; }
+        .button { background: #23422F; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📍 Your Order Is Ready for Pickup!</h1>
+            <p>Come collect it at your convenience</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Hi <strong>{{ order.full_name }}</strong>,</p>
+
+            <p>Good news! Your order is packed and ready for collection.</p>
+
+            <!-- Pickup Ready Notice -->
+            <div class="pickup-box">
+                <div style="color: #666; font-size: 12px; text-transform: uppercase; margin-bottom: 8px;">Order Number</div>
+                <div style="font-family: monospace; font-size: 18px; font-weight: bold; color: #23422F;">{{ order.order_number }}</div>
+                <p style="margin: 12px 0 0 0; font-size: 12px; color: #666;">
+                    Please bring this order number with you when you come to collect your items.
+                </p>
+            </div>
+
+            <!-- Order Items -->
+            <h3>Order Items</h3>
+            <div class="items-list">
+                {% for item in items %}
+                <div class="item">
+                    <strong>{{ item.product_name }}</strong><br>
+                    <small style="color: #666;">Qty: {{ item.quantity }} | Price: ${{ item.price }}</small>
+                </div>
+                {% endfor %}
+                <div class="item" style="border-top: 2px solid #ddd; padding-top: 8px; margin-top: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                        <span>Total Amount:</span>
+                        <span>${{ order.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pickup Location -->
+            <h3>Collect From</h3>
+            <div class="address-box">
+                {% if order.pickup_location %}
+                    <strong>{{ order.pickup_location.name }}</strong><br>
+                    {{ order.pickup_location.address }}<br>
+                {% else %}
+                    <strong>Our Store</strong><br>
+                {% endif %}
+                <br>
+                <small>
+                    <strong>📱</strong> {{ order.phone }}
+                </small>
+            </div>
+
+            <!-- What to Bring -->
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <strong>🪪 What to Bring:</strong><br>
+                <small>Please bring a valid ID and your order number ({{ order.order_number }}) when collecting your items.</small>
+            </div>
+
+            <!-- Next Steps -->
+            <h3>What to Do:</h3>
+            <ul style="line-height: 1.8;">
+                <li>Visit the pickup location above during store hours</li>
+                <li>Bring your order number and a valid ID</li>
+                <li>Our team will hand over your items once verified</li>
+            </ul>
+
+            <div style="text-align: center;">
+                <a href="https://yourdomain.com/my-orders/" class="button">View My Orders</a>
+            </div>
+
+            <p style="margin-top: 30px;">
+                <strong>Thank you for shopping with us!</strong><br>
+                If you have any questions about your order, please don't hesitate to contact us.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Dr Apple Store</strong> | Premium Apple Products & Accessories</p>
+            <p>📞 +234 xxx xxx xxxx | 📧 support@drapplestore.com</p>
+            <p>&copy; 2026 Dr Apple Store. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

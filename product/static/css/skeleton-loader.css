@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Skeleton loader — shimmer placeholder shown behind each product image
+   until it finishes loading, then fades out as the real image fades in.
+   Paste into BOTH css/product_list.css and css/product_detail.css.
+   ========================================================================== */
+
+.skeleton-shimmer {
+  position: relative;
+  background: linear-gradient(90deg, #eef0f2 25%, #f8f9fa 50%, #eef0f2 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer-move 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer-move {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-fade {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.skeleton-fade.is-loaded {
+  opacity: 1;
+}
+
+/* Once the image has loaded, stop the shimmer animation on its wrapper
+   so it doesn't keep running invisibly underneath. */
+.skeleton-shimmer:has(.skeleton-fade.is-loaded) {
+  animation: none;
+  background: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: #f0f1f3;
+  }
+
+  .skeleton-fade {
+    transition: none;
+  }
+}

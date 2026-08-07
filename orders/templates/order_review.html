@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Order{% endblock %}
+
+{% block content %}
+    {% load static %}
+{% load humanize %}
+    <link rel="stylesheet" href="{% static 'orders/css/order_review.css' %}">
+
+<div class="container mt-5 mb-5">
+    <h1 class="page-title mb-4">Review Your Order</h1>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-lg-8 mb-4">
+            <!-- Shipping / Pickup Info -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <h5 class="review-card-title">
+                        {% if order.fulfillment_method == 'pickup' %}
+                            Pickup Information
+                        {% else %}
+                            Shipping Information
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="review-card-body">
+                    <div class="review-row">
+                        <span class="review-label">Name:</span>
+                        <span class="review-value">{{ order.full_name }}</span>
+                    </div>
+                    <div class="review-row">
+                        <span class="review-label">Email:</span>
+                        <span class="review-value">{{ order.email }}</span>
+                    </div>
+                    <div class="review-row">
+                        <span class="review-label">Phone:</span>
+                        <span class="review-value">{{ order.phone }}</span>
+                    </div>
+
+                    {% if order.fulfillment_method == 'pickup' %}
+                        <div class="review-row">
+                            <span class="review-label">Pickup Location:</span>
+                            <span class="review-value">
+                                {% if order.pickup_location %}
+                                    {{ order.pickup_location.name }} — {{ order.pickup_location.address }}
+                                {% else %}
+                                    Store pickup
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-store"></i>
+                            {% if order.pickup_location %}
+                                {{ order.pickup_location.confirmation_message }}
+                            {% else %}
+                                Your order will be prepared for collection at our store. We'll contact you when it's ready.
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="review-row">
+                            <span class="review-label">Address:</span>
+                            <span class="review-value">{{ order.address }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="review-card mt-4">
+                <div class="review-card-header">
+                    <h5 class="review-card-title">Order Items</h5>
+                </div>
+                <div class="review-items">
+                    {% for item in items %}
+                    <div class="review-item">
+                        <div class="review-item-info">
+                            <span class="review-item-name">{{ item.product_name }}</span>
+                            <span class="review-item-qty">Qty: {{ item.quantity }}</span>
+                        </div>
+                        <div class="review-item-price">₦{{ item.price|intcomma }}</div>
+                        <div class="review-item-subtotal">₦{{ item.get_subtotal|intcomma }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="review-card mt-4">
+                <div class="review-card-header">
+                    <h5 class="review-card-title">Choose Payment Method</h5>
+                </div>
+                <div class="review-card-body">
+                    <form method="post" action="{% url 'process_payment' order.id %}">
+                        {% csrf_token %}
+
+                        <!-- Paystack Option -->
+                        <div class="payment-option">
+                            <input type="radio" id="paystack" name="payment_method" value="paystack" required>
+                            <label for="paystack" class="payment-option-label">
+                                <div class="payment-option-icon">💳</div>
+                                <div class="payment-option-text">
+                                    <strong>Paystack</strong>
+                                    <p>Pay securely with your debit or credit card.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Bank Transfer Option -->
+                        <div class="payment-option">
+                            <input type="radio" id="bank_transfer" name="payment_method" value="bank_transfer">
+                            <label for="bank_transfer" class="payment-option-label">
+                                <div class="payment-option-icon">🏦</div>
+                                <div class="payment-option-text">
+                                    <strong>Bank Transfer</strong>
+                                    <p>Place your order and transfer to our bank account.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- WhatsApp Option -->
+                        <div class="payment-option">
+                            <input type="radio" id="whatsapp" name="payment_method" value="whatsapp">
+                            <label for="whatsapp" class="payment-option-label">
+                                <div class="payment-option-icon">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .1 5.363.1 11.945c0 2.105.549 4.161 1.595 5.976L0 24l6.243-1.638a11.9 11.9 0 0 0 5.797 1.475h.005c6.585 0 11.946-5.363 11.949-11.945a11.9 11.9 0 0 0-3.474-8.443"/>
+                                    </svg>
+                                </div>
+                                <div class="payment-option-text">
+                                    <strong>WhatsApp</strong>
+                                    <p>Chat with our sales team before completing your order.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Payment method selection -->
+                        <button type="submit" class="btn btn-primary btn-lg w-100">Continue to Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="review-summary">
+                <h5 class="review-summary-title">Order Number</h5>
+                <div class="review-summary-order-number">{{ order.order_number }}</div>
+
+                <h5 class="review-summary-title mt-4">Order Total</h5>
+                <div class="review-summary-total">
+                    <div class="review-summary-row">
+                        <span>Items ({{ items.count }})</span>
+                        <span>₦{{ order.total_price|intcomma }}</span>
+                    </div>
+                    <div class="review-summary-row review-summary-final">
+                        <span>Total</span>
+                        <strong class="price-tag price-tag-lg">₦{{ order.total_price|intcomma }}</strong>
+                    </div>
+                </div>
+
+                <a href="{% url 'cart_detail' %}" class="btn btn-outline-secondary w-100 mt-3">Edit Cart</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

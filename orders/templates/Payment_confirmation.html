@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Payment{% endblock %}
+
+{% block content %}
+      {% load static %}
+{% load humanize %}
+     <link rel="stylesheet" href="{% static 'orders/css/confirm_payment.css' %}">
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="page-title mb-4">Confirm Payment</h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <!-- Payment Method Details (Left) -->
+                <div class="col-lg-6 mb-4">
+                    <!-- Payment Method Card -->
+                    <div class="card border-0 mb-4">
+                        <div class="card-header bg-light border-bottom">
+                            <h5 class="mb-0">Payment Instructions</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- WhatsApp -->
+                            {% if order.payment_method == 'whatsapp' %}
+                                <div class="alert alert-info mb-3">
+                                    <strong>💬 WhatsApp Payment</strong><br>
+                                    Click the button below to chat with us about payment details.
+                                </div>
+
+                                <div style="text-align: center; margin: 2rem 0;">
+                                    <a href="https://wa.me/{{ whatsapp_number }}?text={{ whatsapp_message }}"
+                                       target="_blank"
+                                       class="btn btn-success btn-lg">
+                                        <i class="fab fa-whatsapp"></i> Open WhatsApp
+                                    </a>
+                                </div>
+
+                                <small class="text-muted d-block">
+                                    This will open WhatsApp on your phone. Complete your payment
+                                    discussion with our team, then come back to upload your receipt.
+                                </small>
+                            {% endif %}
+
+                            <!-- Bank Transfer -->
+                            {% if order.payment_method == 'bank_transfer' %}
+                                <div class="alert alert-info mb-3">
+                                    <strong>🏦 Bank Transfer Details</strong><br>
+                                    Transfer the amount below to this account.
+                                </div>
+
+                                <div style="background: #f9f9f9; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                                    <div style="margin-bottom: 0.8rem;">
+                                        <small style="color: var(--sl-ink-soft); font-weight: 500;">Bank Name</small><br>
+                                        <strong>GT Bank</strong>
+                                    </div>
+                                    <div style="margin-bottom: 0.8rem;">
+                                        <small style="color: var(--sl-ink-soft); font-weight: 500;">Account Name</small><br>
+                                        <strong>Dr Apple Store</strong>
+                                    </div>
+                                    <div style="margin-bottom: 0.8rem;">
+                                        <small style="color: var(--sl-ink-soft); font-weight: 500;">Account Number</small><br>
+                                        <strong>0123456789</strong>
+                                    </div>
+                                    <div>
+                                        <small style="color: var(--sl-ink-soft); font-weight: 500;">Bank Code</small><br>
+                                        <strong>058</strong>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning mt-3">
+                                    <strong>⚠️ Important:</strong><br>
+                                    Use order number <strong>{{ order.order_number }}</strong> as the transfer reference.
+                                </div>
+
+                                <small class="text-muted d-block">
+                                    Transfer the amount <strong class="price-tag">₦{{ order.total_price|intcomma }}</strong>
+                                    to the account above.
+                                </small>
+                            {% endif %}
+
+                            <!-- Paystack -->
+                            {% if order.payment_method == 'paystack' %}
+                                <div class="alert alert-warning">
+                                    <strong>💳 Paystack Payment</strong><br>
+                                    This payment method is coming soon. Please choose Bank Transfer or WhatsApp for now.
+                                </div>
+
+                                <a href="{% url 'order_review' order.id %}" class="btn btn-outline-secondary w-100">
+                                    Change Payment Method
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Order Summary Card -->
+                    <div class="card border-0">
+                        <div class="card-header bg-light border-bottom">
+                            <h5 class="mb-0">Order {{ order.order_number }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 0.8rem;">
+                                <span style="color: var(--sl-ink-soft);">Total Amount:</span><br>
+                                <span class="price-tag price-tag-lg">₦{{ order.total_price|intcomma }}</span>
+                            </div>
+                            <div>
+                                <span style="color: var(--sl-ink-soft);">Items:</span><br>
+                                <strong>{{ order.get_total_items }} item{{ order.get_total_items|pluralize }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Upload (Right) -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0">
+                        <div class="card-header bg-light border-bottom">
+                            <h5 class="mb-0">Upload Payment Receipt</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-upload"></i> After completing payment, upload your receipt here as proof.
+                            </div>
+
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+
+                                <div class="form-group mb-3">
+                                    <label for="receipt" class="form-label">
+                                        <i class="fas fa-image"></i> Choose Receipt Image
+                                    </label>
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="receipt"
+                                        name="receipt"
+                                        accept="image/*,.pdf"
+                                        required
+                                    >
+                                    <small class="text-muted d-block mt-2">
+                                        PNG, JPG, GIF, PDF (Max 5MB)
+                                    </small>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                                    <textarea
+                                        class="form-control"
+                                        id="notes"
+                                        name="notes"
+                                        rows="2"
+                                        placeholder="e.g., Transfer reference, payment time, etc."
+                                    ></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-check"></i> Upload Receipt & Confirm
+                                </button>
+                            </form>
+
+                            <div class="alert alert-light mt-3">
+                                <small class="text-muted">
+                                    <strong>💡 Tip:</strong> Take a clear screenshot or photo of your payment confirmation
+                                    and upload it here. This helps us verify your payment quickly.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Link -->
+            <div class="text-center mt-4">
+                <a href="{% url 'order_review' order.id %}" class="btn btn-outline-secondary btn-sm">
+                    ← Change Payment Method
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

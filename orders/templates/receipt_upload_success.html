@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Receipt Uploaded Successfully{% endblock %}
+
+{% block content %}
+{% load humanize %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Success Animation -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">
+                    ✅
+                </div>
+                <h1 class="page-title">Receipt Received!</h1>
+                <p style="font-size: 1.1rem; color: var(--sl-ink-soft);">
+                    We've received your payment proof. Thank you!
+                </p>
+            </div>
+
+            <!-- Order Confirmation Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Order {{ order.order_number }}</h5>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.85rem; color: var(--sl-ink-soft); font-weight: 500; margin-bottom: 0.25rem;">Total Amount</div>
+                            <div class="price-tag" style="display: inline-block;">₦{{ order.total_price|intcomma }}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.85rem; color: var(--sl-ink-soft); font-weight: 500; margin-bottom: 0.25rem;">Payment Method</div>
+                            <div style="font-weight: 600; text-transform: capitalize;">
+                                {% if order.payment_method == 'bank_transfer' %}
+                                    Bank Transfer
+                                {% elif order.payment_method == 'whatsapp' %}
+                                    WhatsApp
+                                {% elif order.payment_method == 'paystack' %}
+                                    Paystack
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What Happens Next -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">What Happens Next?</h5>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="font-size: 1.5rem; color: var(--sl-green); min-width: 40px; text-align: center;">1️⃣</div>
+                        <div>
+                            <strong>We'll Verify Your Payment</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--sl-ink-soft); font-size: 0.9rem;">
+                                Our team will review your receipt and confirm the payment within 2-24 hours.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="font-size: 1.5rem; color: var(--sl-green); min-width: 40px; text-align: center;">2️⃣</div>
+                        <div>
+                            <strong>You'll Get a Confirmation Email</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--sl-ink-soft); font-size: 0.9rem;">
+                                Once verified, we'll send you an email confirming your payment at {{ order.email }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="font-size: 1.5rem; color: var(--sl-green); min-width: 40px; text-align: center;">3️⃣</div>
+                        <div>
+                            {% if order.fulfillment_method == 'pickup' %}
+                                <strong>We'll Prepare Your Order for Pickup</strong>
+                                <p style="margin: 0.5rem 0 0 0; color: var(--sl-ink-soft); font-size: 0.9rem;">
+                                    Your items will be ready for collection at our store within 24-48 hours of payment confirmation. We'll contact you when it's ready.
+                                </p>
+                            {% else %}
+                                <strong>We'll Ship Your Order</strong>
+                                <p style="margin: 0.5rem 0 0 0; color: var(--sl-ink-soft); font-size: 0.9rem;">
+                                    Your items will be packaged and shipped within 24-48 hours of payment confirmation.
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Order Items</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in items %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--sl-line);">
+                        <div>
+                            <div style="font-weight: 600;">{{ item.product_name }}</div>
+                            <div style="font-size: 0.85rem; color: var(--sl-ink-soft);">Qty: {{ item.quantity }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600;">₦{{ item.get_subtotal|intcomma }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Delivery Address / Pickup Details -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        {% if order.fulfillment_method == 'pickup' %}
+                            Pickup Details
+                        {% else %}
+                            Delivery Address
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if order.fulfillment_method == 'pickup' %}
+                        <div style="line-height: 1.8;">
+                            <strong>{{ order.full_name }}</strong><br>
+                            {% if order.pickup_location %}
+                                {{ order.pickup_location.name }}<br>
+                                {{ order.pickup_location.address }}<br>
+                            {% endif %}
+                            <br>
+                            <small class="text-muted">
+                                <strong>📱</strong> {{ order.phone }}<br>
+                                <strong>📧</strong> {{ order.email }}
+                            </small>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-store"></i>
+                            {% if order.pickup_location %}
+                                {{ order.pickup_location.confirmation_message }}
+                            {% else %}
+                                Your order will be prepared for collection at our store. We'll contact you when it's ready.
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div style="line-height: 1.8;">
+                            <strong>{{ order.full_name }}</strong><br>
+                            {{ order.address }}<br>
+                            {{ order.state }}, {{ order.country }}<br>
+                            <br>
+                            <small class="text-muted">
+                                <strong>📱</strong> {{ order.phone }}<br>
+                                <strong>📧</strong> {{ order.email }}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                <strong>Keep Your Receipt</strong><br>
+                Your order reference number is <strong>{{ order.order_number }}</strong>.
+                You'll need this for tracking and inquiries.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'order_history' %}" class="btn btn-primary">
+                        <i class="fas fa-history"></i> View My Orders
+                    </a>
+                {% endif %}
+                <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-shopping-bag"></i> Continue Shopping
+                </a>
+            </div>
+
+            <!-- Support Info -->
+            <div class="alert alert-light mt-4 text-center">
+                <small class="text-muted">
+                    <strong>Questions?</strong><br>
+                    Contact support: support@drapplestore.com | +234 xxx xxx xxxx<br>
+                    We're here to help!
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

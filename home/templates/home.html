@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block title %}Home - Dr Apple Store{% endblock %}
+{% load static %}
+
+
+{% block content %}
+       {% block extra_css %}
+  <link rel="stylesheet" href="{% static 'home/home.css' %}">
+        {% endblock %}
+
+<div class="container-fluid">
+   <!-- Hero Banner: scroll-scrubbed video -->
+<section class="hero-pin-wrap">
+    <div class="hero-copy">
+        <div class="hero-eyebrow"><i class="fab fa-apple"></i></div>
+            <div class="hero-eyebrow">
+                ✦ ORIGINAL APPLE PRODUCTS
+            </div>
+                <h1>
+                    Own the Future.
+                </h1>
+
+                <h3  class="hero-desc">
+                    premium smartphones and genuine Apple accessories,
+                    delivered with confidence.
+
+                </h3>
+        <div class="hero-buttons">
+            <div class="hero-scroll-hint">SCROLL TO EXPLORE</div>
+        </div>
+    </div>
+
+    <div class="hero-video-frame">
+        <video
+            id="hero-clip"
+            class="hero-video"
+            src="{% static 'video/product.mp4' %}"
+            muted
+            playsinline
+            preload="auto"
+        ></video>
+        <div class="hero-video-vignette"></div>
+    </div>
+</section>
+                    <!-- Categories Section -->
+<!--
+    ASSUMPTIONS (adjust if your Category model differs):
+      - context variable is called `categories`
+      - fields used: category.name, category.image (optional), category.slug
+      - links to your existing product_list view, filtered via ?category=<slug>
+        (matches the same ?search= pattern already used in your header search box)
+    If any of these don't match, swap the name in the lines marked below.
+
+    NOTE: this section is now styled to sit on the plain page background
+    (light theme, matching Reviews/Features below) — not the glass/dark
+    treatment, which was built for a sticky video backdrop this section
+    doesn't have.
+-->
+<section class="py-5 category-section">
+    <div class="container">
+        <h2 class="mb-4">Shop by Category</h2>
+
+        {% if categories %}
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-lg-3 col-md-4 col-6 mb-4">
+                <a href="{% url 'product_list' %}?category={{ category.slug }}" class="category-card d-block text-decoration-none h-100">
+                    {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-card-img">
+                    {% else %}
+                    <div class="category-card-icon">
+                        <i class="fab fa-apple"></i>
+                    </div>
+                    {% endif %}
+                    <div class="category-card-body">
+                        <h6 class="mb-0">{{ category.name }}</h6>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center py-5 category-empty">
+            <h5 class="mb-2">No Categories Yet</h5>
+            <p class="mb-0">Categories will appear here once added.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+    <!-- Reviews Section -->
+    <section id="reviews" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="mb-4">⭐ What Our Customers Say</h2>
+
+            {% if reviews %}
+            <div class="row">
+                {% for review in reviews %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if review.image %}
+                        <img src="{{ review.image.url }}" alt="Photo from {{ review.customer.username }}'s review" class="card-img-top" style="height: 180px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <!-- Customer Name & Date -->
+                            <div class="mb-3 pb-3 border-bottom">
+                                <strong class="d-block">{{ review.customer.first_name|default:review.customer.username }}</strong>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                            </div>
+
+                            <!-- Product Name -->
+                            <p class="text-muted small mb-2">
+                                <strong>Product:</strong> {{ review.product.name }}
+                            </p>
+
+                            <!-- Stars -->
+                            <div class="mb-3">
+                                <span style="font-size: 20px; letter-spacing: 2px;">
+                                    {% for i in "12345" %}
+                                        {% if i|add:"0" <= review.rating %}
+                                            <span style="color: #ffc107;">⭐</span>
+                                        {% else %}
+                                            <span style="color: #e0e0e0;">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <strong class="ms-2">({{ review.rating }}/5)</strong>
+                            </div>
+
+                            <!-- Review Title -->
+                            <h6 class="card-title mb-2">{{ review.title }}</h6>
+
+                            <!-- Review Text -->
+                            <p class="card-text text-muted small mb-3">{{ review.review_text|truncatewords:25 }}</p>
+
+                            <!-- Verified Badge -->
+                            {% if review.is_verified_purchase %}
+                            <div>
+                                <span class="badge bg-success">✓ Verified Purchase</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center py-5">
+                <h5 class="mb-2">📝 No Reviews Yet</h5>
+                <p class="mb-0">Be the first to buy and review our products!</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 mb-4">
+                    <div class="feature-box p-4">
+                        <h5 class="mb-2">📦 Fast Shipping</h5>
+                        <p class="text-muted small">Delivery within 2-3 business days</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-box p-4">
+                        <h5 class="mb-2">💳 Secure Payment</h5>
+                        <p class="text-muted small">Multiple payment options available</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-box p-4">
+                        <h5 class="mb-2">🔒 Genuine Products</h5>
+                        <p class="text-muted small">100% authentic Apple products</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-box p-4">
+                        <h5 class="mb-2">📞 24/7 Support</h5>
+                        <p class="text-muted small">Customer service always available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5" style="background: linear-gradient(135deg, #C8912E 0%, #16241C 100%); color: white;">
+        <div class="container text-center">
+            <h3 class="mb-3">Ready to Shop?</h3>
+            <p class="lead mb-4">Browse our collection of premium Apple products</p>
+            <a href="{% url 'product_list' %}" class="btn btn-light btn-lg">Shop Now</a>
+        </div>
+    </section>
+
+</div>
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const heroVideo = document.getElementById('hero-clip');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!heroVideo || reduceMotion) {
+        return;
+    }
+
+    function buildScrub() {
+        // Pin the hero for a fixed scroll distance, then tie the video's
+        // currentTime directly to scroll progress across that distance.
+        gsap.timeline({
+            scrollTrigger: {
+                trigger: '.hero-pin-wrap',
+                start: 'top top',
+                end: '+=3500',   // total scroll distance the clip plays across
+                scrub: 0.4,       // smooths playback slightly behind scroll
+                pin: true,
+                anticipatePin: 1
+            }
+        }).to(heroVideo, {
+            currentTime: heroVideo.duration,
+            ease: 'none'
+        });
+    }
+
+    if (heroVideo.readyState >= 1) {
+        // Metadata (and therefore duration) already available
+        buildScrub();
+    } else {
+        heroVideo.addEventListener('loadedmetadata', buildScrub, { once: true });
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

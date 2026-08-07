@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Security Log - Dr Apple Store{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <h2 class="mb-4">🛡️ Security Log</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>IP Address</th>
+                    <th>Date/Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in audit_logs %}
+                <tr>
+                    <td><span class="badge" style="background-color: var(--bs-{{ log.get_action_color|default:'secondary' }});">{{ log.get_action_display }}</span></td>
+                    <td>{{ log.ip_address }}</td>
+                    <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center">No activity yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{% url 'account:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

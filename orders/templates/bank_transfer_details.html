@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Bank Transfer Details{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <h1 class="page-title mb-4">Bank Transfer Details</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <strong>Order {{ order.order_number }} Created Successfully!</strong>
+            </div>
+
+            <div class="card border-0 bg-light p-4 mb-4">
+                <h5 class="mb-3">Transfer Instructions</h5>
+                <p class="text-muted mb-0">
+                    Please transfer <strong class="price-tag">₦{{ order.total_price|intcomma }}</strong> to the account below within 24 hours. Once we receive payment, your order will be processed.
+                </p>
+            </div>
+
+            <div class="card border-0 mb-4">
+                <div class="card-body">
+                    <h6 class="mb-3">Bank Details</h6>
+                    <div style="margin-bottom: 1rem;">
+                        <span style="font-weight: 600;">Bank Name:</span>
+                        <span>{{ bank_name }}</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span style="font-weight: 600;">Account Name:</span>
+                        <span>{{ account_name }}</span>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span style="font-weight: 600;">Account Number:</span>
+                        <span>{{ account_number }}</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: 600;">Bank Code:</span>
+                        <span>{{ bank_code }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>⚠️ Important:</strong> Include your order number <strong>{{ order.order_number }}</strong> in the transfer reference so we can match your payment.
+            </div>
+
+            <a href="{% url 'product_list' %}" class="btn btn-primary w-100">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

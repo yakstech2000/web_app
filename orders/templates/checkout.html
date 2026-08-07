@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+{% load humanize %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'orders/css/checkout.css' %}">
+
+    <!--
+        Fulfillment-method styles below. These are scoped to this page for
+        now — move them into checkout.css whenever convenient, they don't
+        need to stay inline.
+    -->
+    <style>
+        .fulfillment-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .fulfillment-option {
+            flex: 1 1 220px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e2e2;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+            background: #fff;
+        }
+
+        .fulfillment-option:hover {
+            border-color: #C8912E;
+        }
+
+        .fulfillment-option.selected {
+            border-color: #C8912E;
+            background-color: #fdf6ec;
+        }
+
+        .fulfillment-option input[type="radio"] {
+            margin-top: 0.25rem;
+            accent-color: #C8912E;
+        }
+
+        .fulfillment-option-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .fulfillment-option-text strong {
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .fulfillment-option-text span {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .pickup-confirmation-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        @media (max-width: 576px) {
+            .fulfillment-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+<div class="container mt-5 mb-5">
+    <h1 class="page-title mb-4">Checkout</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Checkout Form -->
+        <div class="col-lg-8 mb-4">
+
+            <!-- Fulfillment Method -->
+            <div class="checkout-card mb-4">
+                <h5 class="checkout-section-title">Fulfillment Method</h5>
+
+                <div class="fulfillment-options">
+                    <label class="fulfillment-option selected" data-method="delivery">
+                        <input type="radio" name="fulfillment_method" value="delivery" form="checkout-form" checked>
+                        <span class="fulfillment-option-icon">🚚</span>
+                        <span class="fulfillment-option-text">
+                            <strong>Delivery</strong>
+                            <span>We'll ship your order to your address</span>
+                        </span>
+                    </label>
+
+                    <label class="fulfillment-option" data-method="pickup">
+                        <input type="radio" name="fulfillment_method" value="pickup" form="checkout-form">
+                        <span class="fulfillment-option-icon">📍</span>
+                        <span class="fulfillment-option-text">
+                            <strong>Store Pickup</strong>
+                            <span>Collect your order from our store — free</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="checkout-card">
+                <h5 class="checkout-section-title">Shipping Information</h5>
+
+                <form method="post" class="checkout-form" id="checkout-form">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="full_name" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                    </div>
+
+                    <!-- Delivery-only fields -->
+                    <div id="delivery-fields">
+                        <div class="form-group">
+                            <label for="address" class="form-label">Delivery Address *</label>
+                            <textarea class="form-control" id="address" name="address" rows="4" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="country" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="country" name="country" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="state" name="state" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city" class="form-label">city</label>
+                            <input type="text" class="form-control" id="city" name="city" required>
+                        </div>
+                    </div>
+
+                    <!-- Pickup-only fields / message -->
+                    <div id="pickup-fields" style="display: none;">
+                        {% if pickup_locations|length > 1 %}
+                            <div class="form-group">
+                                <label for="pickup_location" class="form-label">Pickup Location</label>
+                                <select class="form-control" id="pickup_location" name="pickup_location">
+                                    {% for loc in pickup_locations %}
+                                        <option value="{{ loc.id }}">{{ loc.name }} — {{ loc.address }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% elif pickup_locations %}
+                            <input type="hidden" name="pickup_location" value="{{ pickup_locations.0.id }}">
+                        {% endif %}
+
+                        <div class="alert alert-info pickup-confirmation-message">
+                            <i class="fas fa-store"></i>
+                            <span>
+                                {% if pickup_locations %}
+                                    {{ pickup_locations.0.confirmation_message }}
+                                {% else %}
+                                    You have selected Store Pickup. Your order will be prepared for collection at our store. We will contact you when it is ready.
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Continue to Payment</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="checkout-summary" id="order-summary-data"
+                 data-subtotal="{{ subtotal }}">
+                <h5 class="checkout-summary-title">Order Summary</h5>
+
+                <div class="checkout-items">
+                    {% for item in items %}
+                    <div class="checkout-item">
+                        <div class="checkout-item-name">
+                            <span>{{ item.product.name }}</span>
+                            <span class="checkout-item-qty">× {{ item.quantity }}</span>
+                        </div>
+                        <div class="checkout-item-price">${{ item.get_subtotal }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="checkout-divider"></div>
+
+                <div class="checkout-total">
+                    <span>Total Items:</span>
+                    <strong>{{ total_items }}</strong>
+                </div>
+
+                <div class="checkout-total checkout-total-amount">
+                    <span>Total Amount:</span>
+                    <strong class="price-tag price-tag-lg" id="checkout-total-amount">₦{{ total_price|intcomma }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/country-state-city@3.2.1/lib/index.umd.js"></script>
+
+    <script src="{% static 'orders/js/checkout.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deliveryFields = document.getElementById('delivery-fields');
+            const pickupFields = document.getElementById('pickup-fields');
+            const radios = document.querySelectorAll('input[name="fulfillment_method"]');
+            const options = document.querySelectorAll('.fulfillment-option');
+
+            const requiredAddressInputs = deliveryFields.querySelectorAll('input[required], textarea[required]');
+
+            function updateForMethod(method) {
+                options.forEach(function (opt) {
+                    opt.classList.toggle('selected', opt.dataset.method === method);
+                });
+
+                if (method === 'pickup') {
+                    deliveryFields.style.display = 'none';
+                    pickupFields.style.display = 'block';
+                    requiredAddressInputs.forEach(function (el) { el.required = false; });
+                } else {
+                    deliveryFields.style.display = 'block';
+                    pickupFields.style.display = 'none';
+                    requiredAddressInputs.forEach(function (el) { el.required = true; });
+                }
+            }
+
+            radios.forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    updateForMethod(this.value);
+                });
+            });
+
+            const checked = document.querySelector('input[name="fulfillment_method"]:checked');
+            updateForMethod(checked ? checked.value : 'delivery');
+        });
+    </script>
+
+{% endblock %}

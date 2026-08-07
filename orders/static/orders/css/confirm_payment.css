@@ -1,0 +1,157 @@
+/* ==========================================================
+   Confirm Payment — Black / Red / White / Gray theme
+   Drop this into base.html as a <link>, or paste inside a
+   <style> tag at the top of confirm_payment.html.
+   Targets only the classes/elements already in the existing
+   template — no HTML structure is assumed or required.
+   ========================================================== */
+
+:root {
+    --pay-black: #1a1a1a;
+    --pay-red: #c41e3a;
+    --pay-red-dark: #a3172e;
+    --pay-white: #ffffff;
+    --pay-gray-50: #f7f7f7;
+    --pay-gray-100: #eeeeee;
+    --pay-gray-300: #d4d4d4;
+    --pay-gray-500: #8a8a8a;
+    --pay-gray-700: #4a4a4a;
+}
+
+/* Page title */
+.page-title {
+    color: var(--pay-black);
+    font-weight: 700;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--pay-red);
+    display: inline-block;
+}
+
+/* Cards */
+.card.border-0 {
+    background: var(--pay-white);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+.card-header.bg-light {
+    background: var(--pay-gray-50) !important;
+    border-bottom: 2px solid var(--pay-black) !important;
+}
+.card-header h5 {
+    color: var(--pay-black);
+    font-weight: 600;
+}
+.card-body {
+    color: var(--pay-gray-700);
+}
+
+/* Alerts */
+.alert-info {
+    background: var(--pay-gray-50);
+    border: none;
+    border-left: 4px solid var(--pay-black);
+    color: var(--pay-black);
+}
+.alert-warning {
+    background: var(--pay-gray-100);
+    border: none;
+    border-left: 4px solid var(--pay-red);
+    color: var(--pay-black);
+}
+.alert-light {
+    background: var(--pay-gray-50);
+    border: none;
+    border-left: 4px solid var(--pay-gray-500);
+    color: var(--pay-gray-700);
+}
+
+/* Bank transfer details block */
+.card-body div[style*="background: #f9f9f9"] {
+    background: var(--pay-gray-50) !important;
+    border: 1px solid var(--pay-gray-300);
+    border-radius: 8px;
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--pay-black);
+    border-color: var(--pay-black);
+    color: var(--pay-white);
+    font-weight: 600;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    background: var(--pay-red);
+    border-color: var(--pay-red);
+}
+
+/* WhatsApp button keeps its brand green — everything else in the
+   palette stays black/red/white/gray, but this one is an exception
+   for recognizability. */
+.btn-success {
+    background: #25d366;
+    border-color: #25d366;
+    color: var(--pay-white);
+    font-weight: 600;
+}
+.btn-success:hover,
+.btn-success:focus {
+    background: #1ebe5b;
+    border-color: #1ebe5b;
+}
+
+.btn-outline-secondary {
+    color: var(--pay-gray-700);
+    border-color: var(--pay-gray-300);
+    background: var(--pay-white);
+}
+.btn-outline-secondary:hover {
+    background: var(--pay-gray-100);
+    color: var(--pay-black);
+    border-color: var(--pay-gray-500);
+}
+
+/* Price tags */
+.price-tag {
+    color: var(--pay-red);
+    font-weight: 700;
+}
+.price-tag-lg {
+    font-size: 1.6rem;
+    color: var(--pay-red);
+    font-weight: 700;
+}
+
+/* Form fields */
+.form-control,
+.form-control:focus {
+    border: 1px solid var(--pay-gray-300);
+    border-radius: 6px;
+    color: var(--pay-black);
+}
+.form-control:focus {
+    border-color: var(--pay-red);
+    box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
+}
+.form-label {
+    color: var(--pay-black);
+    font-weight: 500;
+}
+.text-muted {
+    color: var(--pay-gray-500) !important;
+}
+
+/* File input specifically */
+input[type="file"].form-control {
+    background: var(--pay-gray-50);
+    padding: 0.6rem;
+}
+
+/* Labels/strong text inside the bank details grid */
+.card-body strong {
+    color: var(--pay-black);
+}
+.card-body small[style*="color: var(--sl-ink-soft)"] {
+    color: var(--pay-gray-500) !important;
+}

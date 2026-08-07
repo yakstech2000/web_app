@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: #23422F; color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { padding: 30px; }
+        .order-number { font-size: 24px; font-weight: bold; color: #23422F; text-align: center; background: #f0f0f0; padding: 20px; border-radius: 4px; margin: 20px 0; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .items-table th { background: #f0f0f0; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; }
+        .items-table td { padding: 12px; border-bottom: 1px solid #ddd; }
+        .total-row { background: #f0f0f0; font-weight: 600; font-size: 16px; }
+        .address-box { background: #f9f9f9; padding: 15px; border-left: 4px solid #C8912E; margin: 20px 0; }
+        .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; }
+        .button { background: #23422F; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>✅ Payment Confirmed!</h1>
+            <p>Thank you for completing your payment</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Hi <strong>{{ order.full_name }}</strong>,</p>
+
+            {% if order.fulfillment_method == 'pickup' %}
+                <p>Great news! We've received and confirmed your payment. Your order is now being prepared for pickup.</p>
+            {% else %}
+                <p>Great news! We've received and confirmed your payment. Your order is now being prepared for shipment.</p>
+            {% endif %}
+
+            <!-- Order Number -->
+            <div class="order-number">{{ order.order_number }}</div>
+
+            <!-- Items Table -->
+            <h3>Order Items</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.price }}</td>
+                        <td>${{ item.get_subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right;">Total:</td>
+                        <td>${{ order.total_price }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {% if order.fulfillment_method == 'pickup' %}
+                <!-- Pickup Location -->
+                <h3>Pickup Location</h3>
+                <div class="address-box">
+                    <strong>{{ order.full_name }}</strong><br>
+                    {% if order.pickup_location %}
+                        {{ order.pickup_location.name }}<br>
+                        {{ order.pickup_location.address }}<br>
+                    {% endif %}
+                    <br>
+                    <small>
+                        <strong>📱 Phone:</strong> {{ order.phone }}<br>
+                        <strong>📧 Email:</strong> {{ order.email }}
+                    </small>
+                </div>
+
+                <!-- Next Steps -->
+                <h3>What's Next?</h3>
+                <p>
+                    Your order will be ready for pickup within 24-48 hours.
+                    We'll contact you as soon as it's ready for collection at the location above.
+                </p>
+            {% else %}
+                <!-- Delivery Address -->
+                <h3>Delivery Address</h3>
+                <div class="address-box">
+                    <strong>{{ order.full_name }}</strong><br>
+                    {{ order.address }}<br>
+                    {{ order.state }}, {{ order.country }}<br>
+                    <br>
+                    <small>
+                        <strong>📱 Phone:</strong> {{ order.phone }}<br>
+                        <strong>📧 Email:</strong> {{ order.email }}
+                    </small>
+                </div>
+
+                <!-- Next Steps -->
+                <h3>What's Next?</h3>
+                <p>
+                    Your order will be carefully packaged and shipped within 24-48 hours.
+                    We'll send you a shipping notification with tracking information so you can monitor your delivery.
+                </p>
+            {% endif %}
+
+            <p>
+                <strong>Thank you for choosing Dr Apple Store!</strong><br>
+                We appreciate your business and are committed to providing you with excellent products and service.
+            </p>
+
+            <div style="text-align: center;">
+                <a href="https://yourdomain.com/my-orders/" class="button">View My Orders</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Dr Apple Store</strong> | Premium Apple Products & Accessories</p>
+            <p>📞 +234 xxx xxx xxxx | 📧 support@drapplestore.com</p>
+            <p>&copy; 2026 Dr Apple Store. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

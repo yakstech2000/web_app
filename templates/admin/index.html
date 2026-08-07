@@ -1,0 +1,210 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% endblock %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div class="dr-dashboard-wrap">
+
+    <!-- ============ LEFT SIDEBAR ============ -->
+    <nav class="dr-sidebar">
+        <a class="dr-sidebar-link dr-sidebar-dashboard" href="{% url 'admin:index' %}">
+            <i class="fa-solid fa-gauge"></i> Dashboard
+        </a>
+
+        {% for app in app_list %}
+        <div class="dr-sidebar-group">
+            <button type="button" class="dr-sidebar-group-toggle">
+                <span>{{ app.name|upper }}</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="dr-sidebar-group-items">
+                {% for model in app.models %}
+                <a href="{{ model.admin_url }}" class="dr-sidebar-link">
+                    <i class="fa-regular fa-circle-dot"></i> {{ model.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </nav>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <div class="dr-main">
+
+        <div class="dr-welcome">
+            <h2>{% translate 'Site administration' %}</h2>
+            <p class="dr-welcome-sub">Welcome back, {{ request.user.first_name|default:request.user.username }}! Here's what's happening with your store today.</p>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="dr-stat-row">
+            <div class="dr-stat-card">
+                <div class="dr-stat-icon dr-stat-icon-orders"><i class="fa-solid fa-box"></i></div>
+                <div class="dr-stat-value">{{ admin_dashboard.total_orders|default:0 }}</div>
+                <div class="dr-stat-label">Total Orders</div>
+                {% if admin_dashboard.total_orders_change != None %}
+                <div class="dr-stat-change {% if admin_dashboard.total_orders_change >= 0 %}up{% else %}down{% endif %}">
+                    {% if admin_dashboard.total_orders_change >= 0 %}+{% endif %}{{ admin_dashboard.total_orders_change }}% from last week
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="dr-stat-card">
+                <div class="dr-stat-icon dr-stat-icon-customers"><i class="fa-solid fa-users"></i></div>
+                <div class="dr-stat-value">{{ admin_dashboard.total_customers|default:0 }}</div>
+                <div class="dr-stat-label">Total Customers</div>
+            </div>
+
+            <div class="dr-stat-card">
+                <div class="dr-stat-icon dr-stat-icon-products"><i class="fa-solid fa-cube"></i></div>
+                <div class="dr-stat-value">{{ admin_dashboard.total_products|default:0 }}</div>
+                <div class="dr-stat-label">Total Products</div>
+                {% if admin_dashboard.total_products_change != None %}
+                <div class="dr-stat-change {% if admin_dashboard.total_products_change >= 0 %}up{% else %}down{% endif %}">
+                    {% if admin_dashboard.total_products_change >= 0 %}+{% endif %}{{ admin_dashboard.total_products_change }}% from last week
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="dr-stat-card">
+                <div class="dr-stat-icon dr-stat-icon-reviews"><i class="fa-solid fa-star"></i></div>
+                <div class="dr-stat-value">{{ admin_dashboard.pending_review_requests|default:0 }}</div>
+                <div class="dr-stat-label">Review Requests</div>
+                <div class="dr-stat-change neutral">Pending reviews</div>
+            </div>
+        </div>
+
+        <!-- App / model modules, restyled as cards -->
+        <div class="dr-modules">
+            {% if app_list %}
+                {% for app in app_list %}
+                <div class="module dr-module">
+                    <div class="dr-module-header">{{ app.name|upper }}</div>
+                    {% for model in app.models %}
+                    <div class="dr-module-row">
+                        <div>
+                            <div class="dr-module-row-title">{{ model.name }}</div>
+                        </div>
+                        <div class="dr-module-row-actions">
+                            {% if model.add_url %}
+                            <a href="{{ model.add_url }}" class="button dr-btn-outline">+ Add</a>
+                            {% endif %}
+                            {% if model.admin_url %}
+                                {% if model.view_only %}
+                                <a href="{{ model.admin_url }}" class="button dr-btn-outline">View</a>
+                                {% else %}
+                                <a href="{{ model.admin_url }}" class="button dr-btn-solid">Change</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>{% translate "You don't have permission to view or edit anything." %}</p>
+            {% endif %}
+        </div>
+
+        <!-- Charts + Top Sellers -->
+        <div class="dr-panels-row">
+            <div class="dr-panel">
+                <div class="dr-panel-header">
+                    <span>Sales Overview</span><span class="dr-panel-tag">This Week</span>
+                </div>
+                <div class="dr-panel-value">₦{{ admin_dashboard.this_month_sales|floatformat:0 }}</div>
+                <div class="dr-panel-sub">Total Sales (this month)</div>
+                <canvas id="dr-sales-chart" height="70"></canvas>
+            </div>
+
+            <div class="dr-panel">
+                <div class="dr-panel-header">
+                    <span>Orders Overview</span><span class="dr-panel-tag">This Week</span>
+                </div>
+                <div class="dr-panel-value">{{ admin_dashboard.this_month_orders|default:0 }}</div>
+                <div class="dr-panel-sub">Total Orders (this month)</div>
+                <canvas id="dr-orders-chart" height="70"></canvas>
+            </div>
+
+            <div class="dr-panel dr-panel-top-products">
+                <div class="dr-panel-header">
+                    <span>Top Selling Products</span>
+                </div>
+                <ul class="dr-top-products-list">
+                    {% for p in admin_dashboard.top_products %}
+                    <li>
+                        <span class="dr-top-product-name">{{ p.product_name }}</span>
+                        <span class="dr-top-product-sold">{{ p.sold }} sold</span>
+                    </li>
+                    {% empty %}
+                    <li class="dr-empty">No sales yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ RECENT ACTIONS (right rail) ============ -->
+    {% if not is_popup %}
+    <aside class="dr-recent">
+        <div class="module" id="recent-actions-module">
+            <h2>{% translate 'Recent actions' %}</h2>
+            <h3>{% translate 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+                <p>{% translate 'None available' %}</p>
+            {% else %}
+                <ul class="dr-recent-list">
+                    {% for entry in admin_log %}
+                    <li>
+                        {% if entry.is_deletion %}<i class="fa-solid fa-xmark dr-recent-icon-delete"></i>
+                        {% elif entry.is_addition %}<i class="fa-solid fa-plus dr-recent-icon-add"></i>
+                        {% else %}<i class="fa-solid fa-pen dr-recent-icon-edit"></i>{% endif %}
+                        {% if entry.is_deletion or not entry.get_admin_url %}
+                            {{ entry.object_repr }}
+                        {% else %}
+                            <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                        {% endif %}
+                        <div class="dr-recent-meta">{{ entry.content_type }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </aside>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script src="{% static 'admin/js/custom_dashboard.js' %}"></script>
+<script>
+    window.DR_DASHBOARD_DATA = {
+        dailySales: {{ admin_dashboard.daily_sales_json|default:"[]"|safe }},
+        dailyOrders: {{ admin_dashboard.daily_orders_json|default:"[]"|safe }}
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.dr-sidebar-group-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                btn.parentElement.classList.toggle('open');
+            });
+        });
+        if (window.initDrDashboardCharts) {
+            window.initDrDashboardCharts(window.DR_DASHBOARD_DATA);
+        }
+    });
+</script>
+{% endblock %}

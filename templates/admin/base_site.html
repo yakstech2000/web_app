@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Dr Apple Store Admin{% endblock %}
+
+{% block branding %}
+<div id="site-branding">
+    <span id="site-logo-fallback"><i class="fab fa-apple"></i></span>
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">Dr Apple Store <span>Admin</span></a>
+    </h1>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin-theme.css' %}">
+{% endblock %}

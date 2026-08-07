@@ -1,0 +1,406 @@
+/* ==========================================================================
+   Dr Apple Store — home.css
+   Complete stylesheet for home/home.html (hero, categories, reviews,
+   features, CTA). This replaces the whole file — if your previous
+   home.css had custom rules for other pages, keep those separate;
+   this is homepage-only.
+   ========================================================================== */
+
+:root {
+  --hero-navy: #0a1628;
+  --hero-navy-deep: #060d18;
+  --hero-gold: #C8912E;
+  --hero-green: #16241C;
+  --hero-text: #f4f2ec;
+  --hero-text-dim: #b7bcc4;
+  --surface-light: #f7f7f5;
+  --surface-card: #ffffff;
+  --ink: #1c1f24;
+  --ink-dim: #6b7280;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero — pinned, video-scrub section                                     */
+/* ---------------------------------------------------------------------- */
+
+.hero-pin-wrap {
+  position: relative;
+  height: 100vh;
+  min-height: 560px;
+  width: 100%;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 1.3fr;
+  align-items: center;
+  background: linear-gradient(155deg, var(--hero-navy) 0%, var(--hero-navy-deep) 100%);
+  color: var(--hero-text);
+  padding: 0 6vw;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 5;
+  max-width: 480px;
+}
+
+.hero-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hero-gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.hero-copy h1 {
+  font-weight: 700;
+  font-size: clamp(2.1rem, 3.6vw, 3.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+  color: var(--hero-text);
+}
+
+.hero-desc {
+  color: var(--hero-text-dim);
+  font-size: 16px;
+  line-height: 1.65;
+  max-width: 380px;
+  margin-bottom: 32px;
+}
+
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-buttons .btn-navy {
+  background: var(--hero-gold);
+  color: var(--hero-navy-deep);
+  border: none;
+  font-weight: 600;
+  padding: 12px 26px;
+  border-radius: 999px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-buttons .btn-navy:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(200, 145, 46, 0.35);
+  color: var(--hero-navy-deep);
+}
+
+.hero-buttons .btn-outline-navy {
+  border: 1px solid rgba(244, 242, 236, 0.35);
+  color: var(--hero-text);
+  padding: 12px 26px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.hero-buttons .btn-outline-navy:hover {
+  border-color: var(--hero-gold);
+  background: rgba(200, 145, 46, 0.08);
+  color: var(--hero-text);
+}
+
+.hero-scroll-hint {
+  margin-top: 48px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--hero-text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-scroll-hint::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--hero-text-dim);
+  display: inline-block;
+}
+
+.hero-video-frame {
+  position: relative;
+  z-index: 2;
+  height: 78%;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: var(--hero-navy-deep);
+}
+
+.hero-video-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10, 22, 40, 0.55) 0%, rgba(10, 22, 40, 0) 30%);
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .hero-pin-wrap {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    padding: 12vh 6vw 6vh;
+    gap: 40px;
+  }
+
+  .hero-video-frame {
+    height: 42vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-pin-wrap {
+    height: auto;
+    min-height: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Category section — sits on the plain white page background (no video   */
+/* behind it), so it uses the same light theme as Reviews/Features below, */
+/* not the dark glass treatment.                                          */
+/* ---------------------------------------------------------------------- */
+
+.category-section {
+  background: var(--surface-card);
+}
+
+.category-section h2 {
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.category-card {
+  display: block;
+  background: var(--surface-card);
+  border: 1px solid rgba(10, 22, 40, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  color: var(--ink);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(10, 22, 40, 0.1);
+  border-color: rgba(200, 145, 46, 0.35);
+  color: var(--ink);
+}
+
+.category-card-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.category-card-icon {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  color: var(--hero-gold);
+  background: linear-gradient(155deg, rgba(10, 22, 40, 0.06) 0%, rgba(200, 145, 46, 0.1) 100%);
+}
+
+.category-card-body {
+  padding: 16px;
+  text-align: center;
+}
+
+.category-card-body h6 {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.category-empty {
+  background: var(--surface-light);
+  border: 1px dashed rgba(10, 22, 40, 0.15);
+  border-radius: 16px;
+  color: var(--ink-dim);
+}
+
+.category-empty h5 {
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reviews section                                                        */
+/* ---------------------------------------------------------------------- */
+
+#reviews {
+  background: var(--surface-light) !important;
+}
+
+#reviews h2 {
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+#reviews .card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#reviews .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(10, 22, 40, 0.12) !important;
+}
+
+#reviews .card-body {
+  padding: 22px;
+}
+
+#reviews .card-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+#reviews .badge.bg-success {
+  background-color: var(--hero-green) !important;
+  border-radius: 999px;
+  font-weight: 500;
+  padding: 6px 12px;
+}
+
+#reviews .alert-info {
+  background: var(--surface-card);
+  border: 1px dashed rgba(10, 22, 40, 0.15);
+  border-radius: 16px;
+  color: var(--ink-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Features section                                                       */
+/* ---------------------------------------------------------------------- */
+
+.feature-box {
+  background: var(--surface-card);
+  border-radius: 16px;
+  border: 1px solid rgba(10, 22, 40, 0.06);
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 36px rgba(10, 22, 40, 0.08);
+  border-color: rgba(200, 145, 46, 0.3);
+}
+
+.feature-box h5 {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.feature-box p {
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* CTA section                                                            */
+/* ---------------------------------------------------------------------- */
+
+.container-fluid > section.py-5[style*="linear-gradient"] h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.container-fluid > section.py-5[style*="linear-gradient"] .btn-light {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 12px 32px;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.container-fluid > section.py-5[style*="linear-gradient"] .btn-light:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   Hero load-in animation — slide up + fade, staggered.
+   Targets the existing hero markup directly, no HTML changes required.
+   ========================================================================== */
+
+@keyframes hero-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-eyebrow,
+.hero-copy h1,
+.hero-desc,
+.hero-buttons,
+.hero-scroll-hint {
+  opacity: 0;
+  animation: hero-slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-eyebrow {
+  animation-delay: 0.1s;
+}
+
+.hero-copy h1 {
+  animation-delay: 0.25s;
+}
+
+.hero-desc {
+  animation-delay: 0.45s;
+}
+
+.hero-buttons {
+  animation-delay: 0.6s;
+}
+
+.hero-scroll-hint {
+  animation-delay: 0.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow,
+  .hero-copy h1,
+  .hero-desc,
+  .hero-buttons,
+  .hero-scroll-hint {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

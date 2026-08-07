@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Order {{ order.order_number }}{% endblock %}
+
+{% block content %}
+{% load humanize %}
+<div class="container mt-5 mb-5">
+    <a href="{% url 'order_history' %}" class="btn btn-outline-secondary btn-sm mb-3">← Back to Orders</a>
+
+    <h1 class="page-title mb-4">Order {{ order.order_number }}</h1>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-lg-8 mb-4">
+            <!-- Status Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 0.85rem; color: var(--sl-ink-soft); margin-bottom: 0.25rem;">Order Status</div>
+                            <h5 class="mb-0">{{ order.get_status_display }}</h5>
+                        </div>
+                        <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'paid' %}bg-info{% elif order.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Items</h5>
+                </div>
+                <div class="card-body">
+                    {% for entry in items_with_reviews %}
+                    <div style="padding: 0.8rem 0; border-bottom: 1px solid var(--sl-line);">
+                        <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 1rem;">
+                            <div>
+                                <div style="font-family: var(--sl-font-display); font-weight: 600;">{{ entry.item.product_name }}</div>
+                                <div style="font-size: 0.85rem; color: var(--sl-ink-soft);">Qty: {{ entry.item.quantity }}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.85rem; color: var(--sl-ink-soft);">₦{{ entry.item.price|intcomma }}</div>
+                            </div>
+                            <div style="text-align: right; font-weight: 600;">
+                                ₦{{ entry.item.get_subtotal|intcomma }}
+                            </div>
+                        </div>
+
+                        {% if entry.review %}
+                        <div class="mt-2 p-2" style="background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 0.9rem;">
+                                {% for i in "12345" %}
+                                    {% if i|add:"0" <= entry.review.rating %}
+                                        <span style="color: #ffc107;">⭐</span>
+                                    {% else %}
+                                        <span style="color: #e0e0e0;">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% if entry.review.title %}
+                            <div style="font-weight: 600; font-size: 0.9rem;">{{ entry.review.title }}</div>
+                            {% endif %}
+                            <div style="font-size: 0.85rem; color: var(--sl-ink-soft);">{{ entry.review.review_text }}</div>
+                        </div>
+                        {% elif order.status == 'completed' %}
+                        <div class="mt-2">
+                            <small class="text-muted">Not reviewed yet — you can write a review from your dashboard.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Delivery Address</h5>
+                </div>
+                <div class="card-body">
+                    <div style="line-height: 1.8;">
+                        <strong>{{ order.full_name }}</strong><br>
+                        {{ order.address }}<br>
+                        {{ order.state }}, {{ order.country }}<br>
+                        <br>
+                        <small class="text-muted">
+                            {{ order.email }}<br>
+                            {{ order.phone }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="col-lg-4">
+            <!-- Summary Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                            <span>Items ({{ order.get_total_items }})</span>
+                            <span>₦{{ order.total_price|intcomma }}</span>
+                        </div>
+                    </div>
+
+                    <div style="height: 1px; background: var(--sl-line); margin: 1rem 0;"></div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600;">Total</span>
+                        <span class="price-tag price-tag-lg">₦{{ order.total_price|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: var(--sl-ink-soft); font-weight: 500; margin-bottom: 0.25rem;">Method</div>
+                        <div style="text-transform: capitalize;">
+                            {% if order.payment_method == 'bank_transfer' %}
+                                Bank Transfer
+                            {% elif order.payment_method == 'paystack' %}
+                                Paystack
+                            {% elif order.payment_method == 'whatsapp' %}
+                                WhatsApp
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--sl-ink-soft); font-weight: 500; margin-bottom: 0.25rem;">Order Date</div>
+                        <div>{{ order.created_at|date:"M d, Y \a\t g:i A" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                <a href="{% url 'order_history' %}" class="btn btn-outline-secondary">Back to Orders</a>
+                <a href="{% url 'product_list' %}" class="btn btn-primary">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
