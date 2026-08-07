@@ -64,7 +64,7 @@
         <div class="row">
             {% for category in categories %}
             <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <a href="{% url 'product_list' %}?category={{ category.slug }}" class="category-card d-block text-decoration-none h-100">
+             <a href="{% url 'product_list' %}?category={{ category.id }}" class="category-card d-block text-decoration-none h-100">
                     {% if category.image %}
                     <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-card-img">
                     {% else %}
