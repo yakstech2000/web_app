@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -46,13 +47,13 @@
                 {% for item in items %}
                 <div class="item">
                     <strong>{{ item.product_name }}</strong><br>
-                    <small style="color: #666;">Qty: {{ item.quantity }} | Price: ${{ item.price }}</small>
+                    <small style="color: #666;">Qty: {{ item.quantity }} | Price: ₦{{ item.price|intcomma }}</small>
                 </div>
                 {% endfor %}
                 <div class="item" style="border-top: 2px solid #ddd; padding-top: 8px; margin-top: 8px;">
                     <div style="display: flex; justify-content: space-between; font-weight: 600;">
                         <span>Total Amount:</span>
-                        <span>${{ order.total_price }}</span>
+                        <span>₦{{ order.total_price|intcomma }}</span>
                     </div>
                 </div>
             </div>
