@@ -1,8 +1,9 @@
 asgiref==3.11.1
+cloudinary==1.44.1
 dj-database-url==3.1.2
-jango==6.0.5
+Django==6.0.6
+django-cloudinary-storage==0.3.0
 django-filter==25.2
-django-reviews==1.2.1
 gunicorn==26.0.0
 packaging==26.3
 pillow==12.2.0
