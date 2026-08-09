@@ -150,19 +150,22 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Static files (CSS/JS/admin assets) still go through whitenoise as before;
 # only MEDIA storage is routed to Cloudinary.
 #
-# NOTE: using the plain (non-compressed) ManifestStaticFilesStorage here.
-# CompressedManifestStaticFilesStorage was crashing collectstatic with a
-# FileNotFoundError during the gzip/brotli compression step (a known
-# flaky issue with some vendored admin static files, e.g. select2 i18n
-# files, under certain filesystem/threading conditions). Compression is
-# a performance nicety, not required — whitenoise still serves files
-# correctly and efficiently without it.
+# NOTE: using CompressedStaticFilesStorage (no "Manifest") here.
+# Both CompressedManifestStaticFilesStorage and ManifestStaticFilesStorage
+# kept crashing collectstatic in production — they hash-rename every
+# static file and rewrite CSS url()/@import references to match, and if
+# even one referenced file is missing (e.g. an unused vendored admin
+# asset like select2's i18n files or admin/css/widgets.css), the entire
+# collectstatic run hard-fails with a ValueError/FileNotFoundError.
+# CompressedStaticFilesStorage skips that reference-rewriting step
+# entirely — it still gzip/brotli-compresses files for efficient
+# whitenoise serving, just without the fragile manifest cross-checking.
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.ManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
@@ -170,11 +173,7 @@ STORAGES = {
 # still check the legacy STATICFILES_STORAGE setting name rather than the
 # newer STORAGES dict. Keeping this defined avoids an AttributeError from
 # those packages. Must match the "staticfiles" backend above.
-STATICFILES_STORAGE = 'whitenoise.storage.ManifestStaticFilesStorage'
-
-# Don't hard-fail collectstatic if a referenced static file is missing
-# (e.g. an unused vendored admin asset) — skip it instead of crashing.
-WHITENOISE_MANIFEST_STRICT = False
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
