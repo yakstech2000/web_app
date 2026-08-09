@@ -150,22 +150,22 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Static files (CSS/JS/admin assets) still go through whitenoise as before;
 # only MEDIA storage is routed to Cloudinary.
 #
-# NOTE: using CompressedStaticFilesStorage (no "Manifest") here.
-# Both CompressedManifestStaticFilesStorage and ManifestStaticFilesStorage
-# kept crashing collectstatic in production — they hash-rename every
-# static file and rewrite CSS url()/@import references to match, and if
-# even one referenced file is missing (e.g. an unused vendored admin
-# asset like select2's i18n files or admin/css/widgets.css), the entire
-# collectstatic run hard-fails with a ValueError/FileNotFoundError.
-# CompressedStaticFilesStorage skips that reference-rewriting step
-# entirely — it still gzip/brotli-compresses files for efficient
-# whitenoise serving, just without the fragile manifest cross-checking.
+# NOTE: using the plain default StaticFilesStorage (no whitenoise storage
+# class, no compression, no manifest hashing) here. Both
+# CompressedManifestStaticFilesStorage and CompressedStaticFilesStorage
+# were crashing collectstatic in production with intermittent
+# FileNotFoundErrors during whitenoise's parallel (ThreadPoolExecutor)
+# compression step — a known flakiness with that step in some container
+# environments, hitting a different vendored admin asset file each run.
+# WhiteNoiseMiddleware still serves static files directly and
+# efficiently without any special storage backend or pre-compression —
+# it simply reads files off STATIC_ROOT at request time.
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
@@ -173,7 +173,7 @@ STORAGES = {
 # still check the legacy STATICFILES_STORAGE setting name rather than the
 # newer STORAGES dict. Keeping this defined avoids an AttributeError from
 # those packages. Must match the "staticfiles" backend above.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
