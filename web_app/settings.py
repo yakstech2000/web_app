@@ -149,15 +149,31 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # is ephemeral, so anything saved locally would be wiped on every redeploy.
 # Static files (CSS/JS/admin assets) still go through whitenoise as before;
 # only MEDIA storage is routed to Cloudinary.
+#
+# NOTE: using the plain (non-compressed) ManifestStaticFilesStorage here.
+# CompressedManifestStaticFilesStorage was crashing collectstatic with a
+# FileNotFoundError during the gzip/brotli compression step (a known
+# flaky issue with some vendored admin static files, e.g. select2 i18n
+# files, under certain filesystem/threading conditions). Compression is
+# a performance nicety, not required — whitenoise still serves files
+# correctly and efficiently without it.
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.ManifestStaticFilesStorage",
     },
 }
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Some packages (e.g. django-cloudinary-storage's collectstatic override)
+# still check the legacy STATICFILES_STORAGE setting name rather than the
+# newer STORAGES dict. Keeping this defined avoids an AttributeError from
+# those packages. Must match the "staticfiles" backend above.
+STATICFILES_STORAGE = 'whitenoise.storage.ManifestStaticFilesStorage'
+
+# Don't hard-fail collectstatic if a referenced static file is missing
+# (e.g. an unused vendored admin asset) — skip it instead of crashing.
 WHITENOISE_MANIFEST_STRICT = False
 
 CLOUDINARY_STORAGE = {
