@@ -21,6 +21,10 @@
 </head>
 <body>
 
+    <!-- ============================================================
+         DESKTOP HEADER (unchanged design, hidden on mobile via CSS)
+         ============================================================ -->
+
     <!-- Top Bar -->
     <div class="top-bar">
         <div class="container">
@@ -69,7 +73,6 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="{% url 'product_list' %}">Products</a></li>
@@ -78,10 +81,74 @@
                 <li><a href="#">Deals</a></li>
                 <li><a href="#">Contact Us</a></li>
             </ul>
-
         </div>
     </nav>
 
+
+    <!-- ============================================================
+         MOBILE HEADER — dedicated design, only visible ≤768px.
+         Sticky bar: hamburger | store name | cart (with badge).
+         Search sits in its own row directly beneath it.
+         ============================================================ -->
+
+    <div class="mobile-header">
+        <button type="button"
+                class="mobile-menu-btn"
+                id="mobileMenuToggle"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="mobileDrawer">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="mobile-logo">
+            <i class="fab fa-apple"></i>
+            <span>Dr Apple Store</span>
+        </div>
+
+        <a href="{% url 'cart_detail' %}" class="mobile-cart-btn" aria-label="Cart">
+            <i class="fas fa-shopping-bag"></i>
+            {% if cart_count %}
+            <span class="mobile-badge">{{ cart_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="mobile-search">
+        <form method="get" action="{% url 'product_list' %}">
+            <i class="fas fa-search"></i>
+            <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search for products...">
+        </form>
+    </div>
+
+    <!-- Overlay behind the drawer — clicking it closes the menu -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+
+    <!-- Slide-out drawer -->
+    <aside class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <span><i class="fab fa-apple"></i> Dr Apple Store</span>
+            <button type="button" id="mobileDrawerClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <ul class="mobile-drawer-links">
+            <li><a href="/"><i class="fas fa-house"></i> Home</a></li>
+            <li><a href="{% url 'product_list' %}"><i class="fas fa-mobile-screen-button"></i> Products</a></li>
+            <li><a href="#"><i class="fas fa-star"></i> New Arrivals</a></li>
+            <li><a href="#"><i class="fas fa-fire"></i> Best Sellers</a></li>
+            <li><a href="#"><i class="fas fa-tag"></i> Deals</a></li>
+            <li><a href="#"><i class="fas fa-phone"></i> Contact Us</a></li>
+        </ul>
+
+        <div class="mobile-drawer-divider"></div>
+
+        <ul class="mobile-drawer-links mobile-drawer-secondary">
+            <li><a href="#"><i class="far fa-heart"></i> Wishlist</a></li>
+            <li><a href="{% url 'account:signup' %}"><i class="far fa-user"></i> My Account</a></li>
+        </ul>
+    </aside>
 
 
     <!-- Main Content -->
@@ -158,8 +225,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('input[type="password"]').forEach(function (input) {
-                // Skip if this field was already wrapped (avoids double-wrapping
-                // if this script somehow runs twice)
                 if (input.parentElement.classList.contains('password-toggle-wrap')) {
                     return;
                 }
@@ -197,6 +262,62 @@
                 });
 
                 wrapper.appendChild(toggleBtn);
+            });
+        });
+    </script>
+
+    <!-- Mobile drawer nav: opens/closes the slide-out menu, closes on
+         overlay click, closes on link tap, and closes automatically if
+         the window is resized back up to desktop width. Also locks
+         background scroll while the drawer is open. -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.getElementById('mobileMenuToggle');
+            const drawer = document.getElementById('mobileDrawer');
+            const overlay = document.getElementById('mobileDrawerOverlay');
+            const closeBtn = document.getElementById('mobileDrawerClose');
+
+            if (!menuToggle || !drawer || !overlay || !closeBtn) {
+                return;
+            }
+
+            function openDrawer() {
+                drawer.classList.add('open');
+                overlay.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                drawer.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('drawer-open');
+            }
+
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                overlay.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                drawer.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('drawer-open');
+            }
+
+            menuToggle.addEventListener('click', openDrawer);
+            closeBtn.addEventListener('click', closeDrawer);
+            overlay.addEventListener('click', closeDrawer);
+
+            // Close automatically after tapping a link inside the drawer
+            drawer.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', closeDrawer);
+            });
+
+            // Safety net: reset drawer state if resized back to desktop
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) {
+                    closeDrawer();
+                }
+            });
+
+            // Escape key closes the drawer
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeDrawer();
+                }
             });
         });
     </script>
