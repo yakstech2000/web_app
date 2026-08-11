@@ -209,30 +209,50 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    function buildScrub() {
-        // Pin the hero for a fixed scroll distance, then tie the video's
-        // currentTime directly to scroll progress across that distance.
-        gsap.timeline({
-            scrollTrigger: {
-                trigger: '.hero-pin-wrap',
-                start: 'top top',
-                end: '+=3500',   // total scroll distance the clip plays across
-                scrub: 0.4,       // smooths playback slightly behind scroll
-                pin: true,
-                anticipatePin: 1
-            }
-        }).to(heroVideo, {
-            currentTime: heroVideo.duration,
-            ease: 'none'
-        });
-    }
+    // ROOT FIX: the scroll-scrubbed pin only makes sense on wider screens
+    // where the hero fills the viewport the way this effect was designed
+    // for. Pinning unconditionally reserves a fixed 3500px scroll-spacer
+    // in the DOM regardless of viewport size — on mobile, where the CSS
+    // already shrinks the hero (see the 900px breakpoint in home.css),
+    // that spacer became a large empty gap after the hero. Scoping the
+    // pin to desktop via matchMedia removes that spacer from the DOM
+    // entirely on mobile instead of just hiding it.
+    let mm = gsap.matchMedia();
 
-    if (heroVideo.readyState >= 1) {
-        // Metadata (and therefore duration) already available
-        buildScrub();
-    } else {
-        heroVideo.addEventListener('loadedmetadata', buildScrub, { once: true });
-    }
+    mm.add('(min-width: 901px)', function () {
+        function buildScrub() {
+            gsap.timeline({
+                scrollTrigger: {
+                    trigger: '.hero-pin-wrap',
+                    start: 'top top',
+                    end: '+=3500',   // total scroll distance the clip plays across
+                    scrub: 0.4,       // smooths playback slightly behind scroll
+                    pin: true,
+                    anticipatePin: 1
+                }
+            }).to(heroVideo, {
+                currentTime: heroVideo.duration,
+                ease: 'none'
+            });
+        }
+
+        if (heroVideo.readyState >= 1) {
+            buildScrub();
+        } else {
+            heroVideo.addEventListener('loadedmetadata', buildScrub, { once: true });
+        }
+    });
+
+    mm.add('(max-width: 900px)', function () {
+        // No pinning on mobile — the hero already sits at its natural
+        // (shrunk) height per the CSS breakpoint, so we just let the
+        // video play normally instead of scroll-scrubbing it.
+        heroVideo.loop = true;
+        heroVideo.play().catch(function () {
+            // Autoplay can be blocked on some mobile browsers even when
+            // muted; that's fine, the poster frame just stays static.
+        });
+    });
 });
 </script>
 {% endblock %}
