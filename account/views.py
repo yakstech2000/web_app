@@ -62,15 +62,26 @@ def signup(request):
                 details={'email': user.email}
             )
 
-            # Send verification email
-            send_verification_email(user, request)
+            # Send verification email — the account is created either way
+            # (so the user isn't blocked by an email outage), but the
+            # message shown below now reflects what actually happened
+            # instead of always claiming success.
+            email_sent = send_verification_email(user, request)
 
             request.session['pending_verification_user_id'] = user.pk
 
-            messages.success(
-                request,
-                '✅ Account created! Check your email to verify your address.'
-            )
+            if email_sent:
+                messages.success(
+                    request,
+                    '✅ Account created! Check your email to verify your address.'
+                )
+            else:
+                messages.warning(
+                    request,
+                    '⚠️ Account created, but we couldn\'t send the verification '
+                    'email right now. Use the "Resend verification email" button '
+                    'below to try again in a moment.'
+                )
             return redirect('account:verification-pending')
         else:
             for field, errors in form.errors.items():
@@ -274,9 +285,19 @@ def resend_verification(request):
             messages.error(request, f'Please wait {remaining}s before requesting another email.')
             return redirect('account:resend-verification')
 
-        send_verification_email(user, request)
+        email_sent = send_verification_email(user, request)
+        # Cooldown still applies even on failure — a broken SMTP
+        # connection shouldn't be hammered by rapid repeat clicks.
         request.session['verification_last_sent'] = timezone.now().timestamp()
-        messages.success(request, '📧 Verification email resent! Check your inbox.')
+
+        if email_sent:
+            messages.success(request, '📧 Verification email resent! Check your inbox.')
+        else:
+            messages.error(
+                request,
+                '❌ We couldn\'t send the email right now. Please try again '
+                'shortly, or contact support if this keeps happening.'
+            )
         return redirect('account:resend-verification')
 
     return render(request, 'resend_verification.html', {
@@ -296,14 +317,23 @@ def password_reset(request):
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
-            try:
-                user = User.objects.get(email=form.cleaned_data['email'].lower())
-                send_password_reset_email(user, request)
-            except User.DoesNotExist:
-                pass  # Generic message
+            # form.clean_email() already raises a ValidationError (caught
+            # below via form.is_valid() being False) when the address isn't
+            # registered, so this branch only ever runs for a real,
+            # existing user — checking email_sent here doesn't create any
+            # new way to distinguish real vs. fake emails, it just tells a
+            # genuine user honestly whether their email actually went out.
+            user = User.objects.get(email=form.cleaned_data['email'].lower())
+            email_sent = send_password_reset_email(user, request)
 
-            # Always show success message for security
-            messages.info(request, '📧 Check your email for password reset instructions.')
+            if email_sent:
+                messages.info(request, '📧 Check your email for password reset instructions.')
+            else:
+                messages.error(
+                    request,
+                    '❌ We\'re having trouble sending emails right now. '
+                    'Please try again in a few minutes, or contact support.'
+                )
             return redirect('account:login')
     else:
         form = PasswordResetRequestForm()

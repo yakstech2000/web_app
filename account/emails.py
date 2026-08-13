@@ -3,11 +3,19 @@ Secure Email System for Account Management
 Handles verification emails and password reset emails
 """
 
+import logging
+
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.urls import reverse
 from account.tokens import generate_email_verification_token, generate_password_reset_token
+
+# Using a module-level logger instead of print() so failures show up as
+# proper ERROR-level entries (with a full traceback via logger.exception)
+# in Railway's log viewer, rather than being mixed in with stdout INFO
+# noise or missed entirely depending on how logs are being tailed.
+logger = logging.getLogger(__name__)
 
 
 def send_verification_email(user, request):
@@ -45,15 +53,23 @@ def send_verification_email(user, request):
         send_mail(
             subject='Verify Your Email - Dr Apple Store',
             message=f'Verify your email: {verification_url}',
-            from_email=settings.EMAIL_HOST_USER,
+            # DEFAULT_FROM_EMAIL (the branded "Dr Apple Store <noreply@...>"
+            # address from settings.py) instead of EMAIL_HOST_USER — the
+            # raw SMTP login address was being used as the visible sender,
+            # which was never actually the intent.
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False,
         )
-        print(f'✅ Verification email sent to {user.email}')
+        logger.info('Verification email sent to %s', user.email)
         return True
-    except Exception as e:
-        print(f'❌ Failed to send verification email to {user.email}: {str(e)}')
+    except Exception:
+        # logger.exception() records the full traceback (SMTP auth errors,
+        # timeouts, etc.) at ERROR level — this is what you need to check
+        # in Railway's Deploy Logs to find the actual delivery failure
+        # reason, instead of a swallowed/silent False.
+        logger.exception('Failed to send verification email to %s', user.email)
         return False
 
 
@@ -92,13 +108,13 @@ def send_password_reset_email(user, request):
         send_mail(
             subject='Reset Your Password - Dr Apple Store',
             message=f'Reset your password: {reset_url}',
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False,
         )
-        print(f'✅ Password reset email sent to {user.email}')
+        logger.info('Password reset email sent to %s', user.email)
         return True
-    except Exception as e:
-        print(f'❌ Failed to send password reset email to {user.email}: {str(e)}')
+    except Exception:
+        logger.exception('Failed to send password reset email to %s', user.email)
         return False

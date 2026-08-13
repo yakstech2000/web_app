@@ -12,7 +12,7 @@ class SecureSignUpForm(forms.ModelForm):
     """
     Secure user registration form with password complexity validation
     - Email uniqueness check
-    - Strong password requirements (12+ chars, mixed case, numbers, symbols)
+    - Strong password requirements (8+ chars, mixed case, numbers, symbols)
     - Password confirmation matching
     """
     password1 = forms.CharField(
@@ -22,8 +22,8 @@ class SecureSignUpForm(forms.ModelForm):
             'placeholder': 'Enter a strong password',
             'autocomplete': 'new-password'
         }),
-        min_length=12,
-        help_text='Minimum 12 characters: uppercase, lowercase, numbers, symbols (!@#$%^&*)'
+        min_length=8,
+        help_text='Minimum 8 characters: uppercase, lowercase, numbers, symbols (!@#$%^&*)'
     )
     password2 = forms.CharField(
         label='Confirm Password',
@@ -32,7 +32,7 @@ class SecureSignUpForm(forms.ModelForm):
             'placeholder': 'Confirm your password',
             'autocomplete': 'new-password'
         }),
-        min_length=12
+        min_length=8
     )
 
     class Meta:
@@ -65,8 +65,8 @@ class SecureSignUpForm(forms.ModelForm):
     def clean_password1(self):
         password = self.cleaned_data.get('password1', '')
 
-        if len(password) < 12:
-            raise ValidationError('Password must be at least 12 characters long.')
+        if len(password) < 8:
+            raise ValidationError('Password must be at least 8 characters long.')
         if not re.search(r'[A-Z]', password):
             raise ValidationError('Password must contain at least one uppercase letter (A-Z).')
         if not re.search(r'[a-z]', password):
@@ -74,7 +74,7 @@ class SecureSignUpForm(forms.ModelForm):
         if not re.search(r'[0-9]', password):
             raise ValidationError('Password must contain at least one number (0-9).')
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-            raise ValidationError('Password must contain at least one symbol (!@#$%^&* etc).')
+            raise ValidationError('Password must contain at least one symbol.')
 
         return password
 
@@ -161,8 +161,8 @@ class SetNewPasswordForm(forms.Form):
             'placeholder': 'Enter your new password',
             'autocomplete': 'new-password'
         }),
-        min_length=12,
-        help_text='Minimum 12 characters: uppercase, lowercase, numbers, symbols'
+        min_length=8,
+        help_text='Minimum 8 characters: uppercase, lowercase, numbers, symbols'
     )
     password2 = forms.CharField(
         label='Confirm New Password',
@@ -171,14 +171,14 @@ class SetNewPasswordForm(forms.Form):
             'placeholder': 'Confirm your new password',
             'autocomplete': 'new-password'
         }),
-        min_length=12
+        min_length=8
     )
 
     def clean_password1(self):
         password = self.cleaned_data.get('password1', '')
 
-        if len(password) < 12:
-            raise ValidationError('Password must be at least 12 characters long.')
+        if len(password) < 8:
+            raise ValidationError('Password must be at least 8 characters long.')
         if not re.search(r'[A-Z]', password):
             raise ValidationError('Password must contain at least one uppercase letter.')
         if not re.search(r'[a-z]', password):
