@@ -1,6 +1,8 @@
 """
 Complete User Authentication Views - Production Ready
-13 views for complete account management and security
+Passwordless customer auth (email -> magic link -> logged in), plus the
+legacy password-based account-management views kept in place for a
+future optional "set a password" feature.
 """
 
 from django.shortcuts import render, redirect
@@ -18,12 +20,14 @@ from account.forms import (
 )
 from account.tokens import (
     generate_email_verification_token, decode_email_verification_token,
-    generate_password_reset_token, decode_password_reset_token
+    generate_password_reset_token, decode_password_reset_token,
+    decode_magic_link_token,
 )
-from account.emails import send_verification_email, send_password_reset_email
-from account.decorators import (
-    throttle_login_attempts, get_client_ip
+from account.emails import (
+    send_verification_email, send_password_reset_email, send_magic_link_email,
 )
+from account.cart_ref import reattach_cart
+from account.decorators import get_client_ip
 from account.models import UserAuditLog, LoginAttempt
 
 from django.utils import timezone
@@ -33,180 +37,111 @@ from orders.models import Order
 
 
 # ==========================================
-# SIGNUP / REGISTRATION
+# PASSWORDLESS SIGNUP / LOGIN
 # ==========================================
+#
+# There's no separate "create an account" step anymore — entering an
+# email, whether brand-new or returning, goes through the same
+# login_view below. signup() just forwards here so any existing links
+# to account:signup keep working without a broken URL.
 
-@require_http_methods(["GET", "POST"])
+LOGIN_LINK_REQUEST_LIMIT = 3
+LOGIN_LINK_REQUEST_WINDOW_MINUTES = 1
+
+
+@require_http_methods(["GET"])
 def signup(request):
     """
-    User registration with secure validation
-    - Email uniqueness check
-    - Password complexity validation
-    - Audit logging
-    - Email verification required
+    No separate signup flow anymore (see login_view) — this exists only
+    so old/bookmarked links to /signup/ still land somewhere sensible
+    instead of 404ing, carrying through `next` if present.
+    """
+    next_url = request.GET.get('next', '')
+    target = reverse('account:login')
+    if next_url:
+        target = f'{target}?next={next_url}'
+    return redirect(target)
+
+
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    """
+    Single entry point for customer authentication - passwordless.
+
+    Enter an email -> get a secure link -> click it to continue. Works
+    identically for brand-new and returning customers: a new User is
+    created (with an unusable password, is_active=False) the first time
+    an email is seen, and the same magic-link email is sent either way.
     """
     if request.user.is_authenticated:
         return redirect('account:dashboard')
 
-    if request.method == 'POST':
-        form = SecureSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+    next_url = request.POST.get('next') or request.GET.get('next', '')
 
-            # Log account creation
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        ip = get_client_ip(request)
+
+        if not email or '@' not in email:
+            messages.error(request, 'Please enter a valid email address.')
+            return render(request, 'login.html', {'next': next_url})
+
+        # Basic request throttling. Reuses the existing LoginAttempt table
+        # rather than adding a new model — here `success` records whether
+        # the email actually sent, not whether a login happened (that's
+        # recorded separately, in verify_email below).
+        window_start = timezone.now() - timedelta(minutes=LOGIN_LINK_REQUEST_WINDOW_MINUTES)
+        recent_requests = LoginAttempt.objects.filter(
+            email=email, attempted_at__gte=window_start
+        ).count()
+
+        if recent_requests >= LOGIN_LINK_REQUEST_LIMIT:
+            messages.error(
+                request,
+                'Too many requests for that email. Please wait a minute and try again.'
+            )
+            return render(request, 'login.html', {'next': next_url})
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'username': email, 'is_active': False},
+        )
+        if created:
+            # Never a guessable/fake password — Django's proper "no
+            # password" state. authenticate() will always reject this
+            # account via password; only the magic link can log them in.
+            user.set_unusable_password()
+            user.save()
             UserAuditLog.objects.create(
                 user=user,
                 action='signup',
-                ip_address=get_client_ip(request),
+                ip_address=ip,
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                details={'email': user.email}
+                details={'email': email, 'method': 'passwordless'},
             )
 
-            # Send verification email — the account is created either way
-            # (so the user isn't blocked by an email outage), but the
-            # message shown below now reflects what actually happened
-            # instead of always claiming success.
-            email_sent = send_verification_email(user, request)
+        email_sent = send_magic_link_email(user, request, next_url=next_url)
 
-            request.session['pending_verification_user_id'] = user.pk
+        LoginAttempt.objects.create(email=email, ip_address=ip, success=bool(email_sent))
 
-            if email_sent:
-                messages.success(
-                    request,
-                    '✅ Account created! Check your email to verify your address.'
-                )
-            else:
-                messages.warning(
-                    request,
-                    '⚠️ Account created, but we couldn\'t send the verification '
-                    'email right now. Use the "Resend verification email" button '
-                    'below to try again in a moment.'
-                )
-            return redirect('account:verification-pending')
+        # Session key used by resend_verification below to know who to
+        # resend to, and to show its cooldown timer.
+        request.session['pending_verification_user_id'] = user.pk
+        request.session.pop('verification_last_sent', None)
+
+        if email_sent:
+            messages.success(request, f'📧 Check {email} for a secure link to continue.')
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field.title()}: {error}')
-    else:
-        form = SecureSignUpForm()
+            messages.error(
+                request,
+                '❌ We couldn\'t send that email right now. Please try again shortly, '
+                'or contact support if this keeps happening.'
+            )
 
-    return render(request, 'signup.html', {'form': form})
+        return redirect('account:verification-pending')
 
+    return render(request, 'login.html', {'next': next_url})
 
-# ==========================================
-# LOGIN / LOGOUT
-# ==========================================
-@require_http_methods(["GET", "POST"])
-@throttle_login_attempts(max_attempts=5, timeout_minutes=15)
-def login_view(request):
-    """
-    Secure login with throttling and audit logging
-    - Login attempt throttling (5 attempts = 15 min lockout)
-    - IP tracking
-    - Audit logging
-    - Generic error messages
-    """
-    if request.user.is_authenticated:
-        return redirect('account:dashboard')
-
-    if request.method == 'POST':
-        form = SecureLoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email'].lower().strip()
-            password = form.cleaned_data['password']
-            ip = get_client_ip(request)
-
-            try:
-                user_obj = User.objects.get(email=email)
-                username = user_obj.username
-            except User.DoesNotExist:
-                user_obj = None
-                username = email
-
-            # Check for admin deactivation FIRST and separately from
-            # is_active below. is_active is used for email-verification
-            # status, not admin bans — checking deactivation here means a
-            # banned-but-verified user gets the correct "deactivated"
-            # message instead of being routed into the "please verify your
-            # email" flow further down.
-            if user_obj is not None:
-                account_status = getattr(user_obj, 'account_status', None)
-                if account_status and account_status.is_deactivated:
-                    messages.error(
-                        request,
-                        '❌ Your account has been deactivated. Please contact support.'
-                    )
-                    LoginAttempt.objects.create(
-                        email=email,
-                        ip_address=ip,
-                        success=False
-                    )
-                    return redirect('account:login')
-
-            # Check is_active BEFORE calling authenticate(). Django's default
-            # ModelBackend silently returns None for inactive users regardless
-            # of whether the password is correct, so checking this only
-            # *after* authenticate() (as before) meant this branch could
-            # never actually run - inactive users always fell through to the
-            # generic "Invalid email or password" message instead.
-            if user_obj is not None and not user_obj.is_active:
-                request.session['pending_verification_user_id'] = user_obj.pk
-                messages.error(request, '❌ Please verify your email first.')
-                LoginAttempt.objects.create(
-                    email=email,
-                    ip_address=ip,
-                    success=False
-                )
-                return redirect('account:resend-verification')
-
-            # Authenticate user
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                # Login successful
-                login(request, user)
-
-                # Log successful login
-                UserAuditLog.objects.create(
-                    user=user,
-                    action='login',
-                    ip_address=ip,
-                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                )
-
-                # Record successful login attempt
-                LoginAttempt.objects.create(
-                    email=email,
-                    ip_address=ip,
-                    success=True
-                )
-
-                messages.success(request, f'👋 Welcome back, {user.first_name or user.username}!')
-
-                # Redirect to next page or dashboard
-                next_url = request.GET.get('next') or reverse('account:dashboard')
-                return redirect(next_url)
-            else:
-                # Login failed
-                LoginAttempt.objects.create(
-                    email=email,
-                    ip_address=ip,
-                    success=False
-                )
-
-                # Log failed attempt
-                UserAuditLog.objects.create(
-                    action='login_failed',
-                    ip_address=ip,
-                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                    details={'email': email}
-                )
-
-                messages.error(request, '❌ Invalid email or password.')
-    else:
-        form = SecureLoginForm()
-
-    return render(request, 'login.html', {'form': form})
 
 @login_required(login_url='account:login')
 @require_http_methods(["GET", "POST"])
@@ -220,58 +155,96 @@ def logout_view(request):
     )
 
     logout(request)
-    messages.success(request, '👋 Logged out successfully!')
+    messages.success(request, 'Logged out successfully!')
     return redirect('account:login')
 
 
 # ==========================================
-# EMAIL VERIFICATION
+# EMAIL VERIFICATION / MAGIC-LINK LOGIN
 # ==========================================
 
 @require_http_methods(["GET"])
-@require_http_methods(["GET"])
 def verify_email(request, uidb64, token):
-    """Verify email with secure token"""
-    user = decode_email_verification_token(uidb64, token)
+    """
+    The single click that completes the entire passwordless flow: verifies
+    the email (first time only) AND logs the user in, in one step.
 
-    if user is not None:
+    login() updates user.last_login, which is part of this token's hash
+    (see account/tokens.py) — so the exact link just clicked can never be
+    used again, without needing a separate "used" flag or extra model.
+    """
+    user = decode_magic_link_token(uidb64, token)
+
+    if user is None:
+        messages.error(
+            request,
+            '❌ This link is invalid, expired, or has already been used. Please request a new one.'
+        )
+        return redirect('account:resend-verification')
+
+    was_new_verification = not user.is_active
+    if not user.is_active:
         user.is_active = True
         user.save()
 
-        request.session.pop('pending_verification_user_id', None)   # <-- add this line
+    login(request, user)
 
-        UserAuditLog.objects.create(
-            user=user,
-            action='email_verified',
-            ip_address=get_client_ip(request),
-        )
+    request.session.pop('pending_verification_user_id', None)
+    request.session.pop('verification_last_sent', None)
 
-        messages.success(request, '✅ Email verified! You can now login.')
-        return redirect('account:login')
-    else:
-        messages.error(request, '❌ Invalid or expired verification link.')
-        return redirect('account:resend-verification')
+    ip = get_client_ip(request)
+    UserAuditLog.objects.create(
+        user=user,
+        action='email_verified' if was_new_verification else 'login',
+        ip_address=ip,
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
+    )
+    LoginAttempt.objects.create(email=user.email, ip_address=ip, success=True)
+
+    # Best-effort: reattach a guest cart built on a different device than
+    # the one this link was opened on. No-ops safely if absent/expired.
+    cart_ref = request.GET.get('cart_ref')
+    if cart_ref:
+        reattach_cart(user, cart_ref)
+
+    greeting = f', {user.first_name}' if user.first_name else ''
+    messages.success(request, f'Welcome{greeting}!')
+
+    # Only ever redirect to a local path — never an external URL — to
+    # avoid this becoming an open redirect.
+    next_url = request.GET.get('next')
+    if next_url and next_url.startswith('/'):
+        return redirect(next_url)
+
+    return redirect('account:dashboard')
+
 
 def verification_pending(request):
-    """Show verification pending message"""
+    """Show 'check your email' message"""
     return render(request, 'verification_pending.html')
 
+
 RESEND_COOLDOWN_SECONDS = 60
+
+
 @require_http_methods(["GET", "POST"])
 def resend_verification(request):
+    """
+    Resends the sign-in link. Works for both a brand-new unverified
+    customer AND a returning already-verified one — under the
+    passwordless flow, a verified/returning customer still needs a fresh
+    link every time they want to log back in (there's no password to
+    fall back on), so this is no longer a one-time-only action.
+    """
     user_id = request.session.get('pending_verification_user_id')
     if not user_id:
-        messages.error(request, 'Please sign up or log in first.')
-        return redirect('account:signup')
+        messages.error(request, 'Please enter your email first.')
+        return redirect('account:login')
 
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         messages.error(request, 'Account not found.')
-        return redirect('account:signup')
-
-    if user.is_active:
-        messages.info(request, 'Your email is already verified.')
         return redirect('account:login')
 
     last_sent = request.session.get('verification_last_sent')
@@ -282,21 +255,19 @@ def resend_verification(request):
 
     if request.method == 'POST':
         if remaining > 0:
-            messages.error(request, f'Please wait {remaining}s before requesting another email.')
+            messages.error(request, f'Please wait {remaining}s before requesting another link.')
             return redirect('account:resend-verification')
 
-        email_sent = send_verification_email(user, request)
-        # Cooldown still applies even on failure — a broken SMTP
-        # connection shouldn't be hammered by rapid repeat clicks.
+        email_sent = send_magic_link_email(user, request)
         request.session['verification_last_sent'] = timezone.now().timestamp()
 
         if email_sent:
-            messages.success(request, '📧 Verification email resent! Check your inbox.')
+            messages.success(request, '📧 Link resent! Check your inbox.')
         else:
             messages.error(
                 request,
-                '❌ We couldn\'t send the email right now. Please try again '
-                'shortly, or contact support if this keeps happening.'
+                '❌ We couldn\'t send that email right now. Please try again shortly, '
+                'or contact support if this keeps happening.'
             )
         return redirect('account:resend-verification')
 
@@ -304,8 +275,12 @@ def resend_verification(request):
         'user': user,
         'cooldown_remaining': remaining,
     })
+
+
 # ==========================================
-# PASSWORD RESET
+# PASSWORD RESET (legacy — not linked from
+# the main nav; kept for a future optional
+# "set a password" dashboard feature)
 # ==========================================
 
 @require_http_methods(["GET", "POST"])
@@ -318,11 +293,9 @@ def password_reset(request):
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             # form.clean_email() already raises a ValidationError (caught
-            # below via form.is_valid() being False) when the address isn't
+            # via form.is_valid() being False) when the address isn't
             # registered, so this branch only ever runs for a real,
-            # existing user — checking email_sent here doesn't create any
-            # new way to distinguish real vs. fake emails, it just tells a
-            # genuine user honestly whether their email actually went out.
+            # existing user.
             user = User.objects.get(email=form.cleaned_data['email'].lower())
             email_sent = send_password_reset_email(user, request)
 
@@ -363,10 +336,6 @@ def password_reset_confirm(request, uidb64, token):
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
             )
 
-            # If this account was never email-verified, resetting the
-            # password alone still won't let them log in (is_active=False
-            # blocks authenticate() regardless of password), so send them
-            # to verify instead of straight to a login page that will fail.
             if not user.is_active:
                 messages.info(
                     request,
@@ -391,8 +360,6 @@ def dashboard(request):
     """User dashboard"""
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
 
-    # Items from completed orders that don't have a review yet - shown as
-    # a "you can review this" notification on the dashboard.
     reviewable_items = []
     for order in user_orders.filter(status=Order.STATUS_COMPLETED).prefetch_related('items', 'reviews'):
         reviewed_product_ids = set(order.reviews.values_list('product_id', flat=True))
@@ -438,7 +405,11 @@ def edit_profile(request):
 @login_required(login_url='account:login')
 @require_http_methods(["GET", "POST"])
 def change_password(request):
-    """Change password"""
+    """
+    Change/set password — legacy view, currently not linked from the
+    dashboard yet. This is exactly the hook for the future "add a
+    password so you can skip the email link next time" feature.
+    """
     if request.method == 'POST':
         form = SetNewPasswordForm(request.POST)
 
@@ -469,7 +440,6 @@ def delete_account(request):
         user = request.user
         email = user.email
 
-        # Log deletion
         UserAuditLog.objects.create(
             user=user,
             action='account_deleted',
@@ -477,7 +447,6 @@ def delete_account(request):
             details={'email': email}
         )
 
-        # Delete user
         user.delete()
 
         messages.success(request, '✅ Account deleted successfully.')

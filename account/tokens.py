@@ -13,6 +13,14 @@ class EmailVerificationTokenGenerator(PasswordResetTokenGenerator):
     """
     Generate secure tokens for email verification
     Expires after 24 hours, one-time use only
+
+    NOTE: kept for the legacy password-based signup path (account/forms.py
+    SecureSignUpForm / account/views.py's original signup+verify_email
+    pair). It's currently unused by the new passwordless flow — see
+    generate_magic_link_token/decode_magic_link_token below, which
+    deliberately use the *plain* PasswordResetTokenGenerator instead,
+    since that one's hash includes user.last_login and therefore
+    self-invalidates the moment login() runs.
     """
 
     def _make_hash_value(self, user, timestamp):
@@ -88,3 +96,17 @@ def generate_secure_token(length=32):
     Uses secrets module for high security
     """
     return secrets.token_urlsafe(length)
+
+
+# ==========================================
+# PASSWORDLESS AUTH (magic links)
+# ==========================================
+#
+# Deliberately reuses the plain PasswordResetTokenGenerator rather than a
+# new class. Its hash includes user.last_login (Django's default since
+# 3.1), which means: once login() runs for a user, ANY previously-issued
+# token for them stops validating — including the exact one just used.
+# That gives single-use magic links with zero extra state, no new model,
+# and no migration.
+generate_magic_link_token = generate_password_reset_token
+decode_magic_link_token = decode_password_reset_token
