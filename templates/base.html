@@ -1,714 +1,327 @@
-/* =========================
-   RESET
-========================= */
-:root{
-    --sl-red: #dc3545;
-    --sl-green: #198754;
-    --sl-accent: #ffc107;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:Arial, Helvetica, sans-serif;
-    color:#111;
-    background:#fff;
-    overflow-x:hidden;
-}
-
-body.drawer-open{
-    overflow:hidden; /* locks background scroll while the mobile drawer is open */
-}
-
-a{
-    text-decoration:none;
-    color:inherit;
-}
-
-ul{
-    list-style:none;
-}
-
-img{
-    max-width:100%;
-    display:block;
-}
-
-.container{
-    width:90%;
-    max-width:1400px;
-    margin:auto;
-}
-
-/* =========================
-   TOP BAR (desktop only)
-========================= */
-
-.top-bar{
-    background:#000;
-    color:#fff;
-    font-size:14px;
-    padding:12px 0;
-}
-
-.top-bar .container{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.top-right{
-    display:flex;
-    gap:25px;
-}
-
-/* =========================
-   HEADER (desktop only)
-========================= */
-
-.header{
-    background:#fff;
-    padding:25px 0;
-    border-bottom:1px solid #eee;
-}
-
-.header-content{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:40px;
-}
-
-.logo{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.logo i{
-    font-size:48px;
-}
-
-.logo h2{
-    font-size:36px;
-    margin-bottom:2px;
-}
-
-.logo span{
-    font-size:20px;
-    color:#444;
-}
-
-/* =========================
-   SEARCH (desktop header)
-========================= */
-
-.search-box{
-    flex:1;
-    display:flex;
-    max-width:700px;
-    border:1px solid #ddd;
-    border-radius:6px;
-    overflow:hidden;
-}
-
-.search-box input{
-    flex:1;
-    min-width:0;
-    border:none;
-    padding:15px;
-    outline:none;
-    font-size:15px;
-}
-
-.search-box button{
-    width:70px;
-    border:none;
-    background:#000;
-    color:#fff;
-    cursor:pointer;
-    font-size:18px;
-}
-
-/* =========================
-   HEADER ICONS (desktop only)
-========================= */
-
-.header-icons{
-    display:flex;
-    gap:30px;
-}
-
-.header-icons a{
-    font-size:28px;
-    transition:.3s;
-}
-
-.header-icons a:hover{
-    color:#555;
-}
-
-/* =========================
-   NAVBAR (desktop only)
-========================= */
-
-.navbar{
-    background:#000;
-}
-
-.navbar ul{
-    display:flex;
-    justify-content:center;
-    gap:50px;
-}
-
-.navbar a{
-    display:block;
-    color:#fff;
-    padding:20px 0;
-    font-weight:600;
-    transition:.3s;
-}
-
-.navbar a:hover{
-    color:#d9d9d9;
-}
-
-/* =========================
-   MOBILE HEADER — hidden on desktop, dedicated design for ≤768px
-========================= */
-
-.mobile-header{
-    display:none; /* shown only in the mobile media query below */
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:12px 16px;
-    background:#fff;
-    border-bottom:1px solid #eee;
-    position:sticky;
-    top:0;
-    z-index:200;
-}
-
-.mobile-menu-btn{
-    background:none;
-    border:none;
-    font-size:22px;
-    color:#111;
-    width:40px;
-    height:40px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-}
-
-.mobile-logo{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-weight:700;
-    font-size:16px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-
-.mobile-logo i{
-    font-size:20px;
-}
-
-.mobile-cart-btn{
-    position:relative;
-    font-size:22px;
-    color:#111;
-    width:40px;
-    height:40px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.mobile-badge{
-    position:absolute;
-    top:2px;
-    right:2px;
-    background:var(--sl-red);
-    color:#fff;
-    font-size:10px;
-    font-weight:700;
-    line-height:1;
-    min-width:16px;
-    height:16px;
-    padding:0 4px;
-    border-radius:999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-/* =========================
-   MOBILE SEARCH ROW
-========================= */
-
-.mobile-search{
-    display:none; /* shown only in the mobile media query below */
-    padding:10px 16px;
-    background:#fff;
-    border-bottom:1px solid #eee;
-}
-
-.mobile-search form{
-    position:relative;
-    display:flex;
-    align-items:center;
-}
-
-.mobile-search i{
-    position:absolute;
-    left:14px;
-    color:#999;
-    font-size:14px;
-    pointer-events:none;
-}
-
-.mobile-search input{
-    width:100%;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:11px 14px 11px 38px;
-    font-size:14px;
-    outline:none;
-}
-
-.mobile-search input:focus{
-    border-color:#000;
-}
-
-/* =========================
-   MOBILE DRAWER (slide-out nav)
-========================= */
-
-.mobile-drawer-overlay{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.5);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .3s ease;
-    z-index:300;
-}
-
-.mobile-drawer-overlay.open{
-    opacity:1;
-    pointer-events:auto;
-}
-
-.mobile-drawer{
-    display:none;
-    position:fixed;
-    top:0;
-    left:-300px;
-    width:280px;
-    max-width:82vw;
-    height:100vh;
-    background:#fff;
-    z-index:400;
-    box-shadow:4px 0 24px rgba(0,0,0,.15);
-    transition:left .3s ease;
-    flex-direction:column;
-    overflow-y:auto;
-}
-
-.mobile-drawer.open{
-    left:0;
-}
-
-.mobile-drawer-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:18px 20px;
-    background:#000;
-    color:#fff;
-    font-weight:700;
-    font-size:16px;
-}
-
-.mobile-drawer-header i{
-    margin-right:8px;
-}
-
-.mobile-drawer-header button{
-    background:none;
-    border:none;
-    color:#fff;
-    font-size:20px;
-    cursor:pointer;
-    width:32px;
-    height:32px;
-}
-
-.mobile-drawer-links li a{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    padding:15px 20px;
-    color:#111;
-    font-weight:600;
-    font-size:15px;
-    border-bottom:1px solid #f0f0f0;
-    transition:background .2s ease;
-}
-
-.mobile-drawer-links li a:hover,
-.mobile-drawer-links li a:active{
-    background:#f7f7f7;
-}
-
-.mobile-drawer-links i{
-    width:20px;
-    text-align:center;
-    color:var(--sl-accent);
-}
-
-.mobile-drawer-divider{
-    height:8px;
-    background:#f5f5f5;
-}
-
-.mobile-drawer-secondary li a{
-    font-weight:500;
-    color:#444;
-}
-
-.mobile-drawer-secondary i{
-    color:#999;
-}
-
-/* =========================
-   AUTH LINKS
-   Scoped class (not a global `a` change) so "Forgot password?",
-   "Sign up here", "Login here", "Back to Login" etc. look clearly
-   clickable, without altering nav/footer link styling elsewhere.
-========================= */
-
-.auth-link{
-    color:#C8912E;
-    font-weight:600;
-    text-decoration:underline;
-    text-underline-offset:3px;
-    display:inline-block;
-    padding:2px 1px; /* small tap-area cushion for mobile without changing layout */
-}
-
-.auth-link:hover,
-.auth-link:focus{
-    color:#a97423;
-    text-decoration:underline;
-}
-
-/* =========================
-   HERO SECTION
-========================= */
-
-.hero{
-    background:#f5f5f5;
-    min-height:650px;
-    display:flex;
-    align-items:center;
-}
-
-.hero-content{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:40px;
-}
-
-.hero-text{
-    flex:1;
-}
-
-.hero-text small{
-    font-size:28px;
-    display:block;
-    margin-bottom:25px;
-}
-
-.hero-text h1{
-    font-size:72px;
-    line-height:1.1;
-    margin-bottom:25px;
-    font-weight:700;
-}
-
-.hero-text p{
-    font-size:22px;
-    color:#555;
-    line-height:1.8;
-    margin-bottom:35px;
-}
-
-.hero-buttons{
-    display:flex;
-    gap:20px;
-}
-
-.btn-dark{
-    background:#000;
-    color:#fff;
-    padding:16px 35px;
-    border-radius:8px;
-    font-weight:600;
-}
-
-.btn-light{
-    border:2px solid #000;
-    padding:16px 35px;
-    border-radius:8px;
-    font-weight:600;
-}
-
-.hero-image{
-    flex:1;
-    text-align:center;
-}
-
-.hero-image img{
-    max-height:700px;
-    margin:auto;
-}
-
-/* =========================
-   FEATURES
-========================= */
-
-.features{
-    padding:40px 0;
-    background:#fff;
-    border-top:1px solid #eee;
-    border-bottom:1px solid #eee;
-}
-
-.feature-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:30px;
-}
-
-.feature-box{
-    display:flex;
-    align-items:center;
-    gap:20px;
-}
-
-.feature-box i{
-    width:70px;
-    height:70px;
-    background:#f5f5f5;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:26px;
-}
-
-.feature-box h4{
-    margin-bottom:8px;
-}
-
-.feature-box p{
-    color:#666;
-}
-
-/* =========================
-   MAIN CONTENT
-========================= */
-
-main{
-    min-height:400px;
-    padding:60px 0;
-}
-
-/* =========================
-   FOOTER
-========================= */
-
-.footer{
-    background:#0b0b0b;
-    color:#fff;
-    margin-top:60px;
-}
-
-.footer-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr 1fr 1.5fr;
-    gap:50px;
-    padding:70px 0;
-}
-
-.footer h2,
-.footer h3{
-    margin-bottom:20px;
-}
-
-.footer p{
-    color:#d3d3d3;
-    line-height:1.8;
-}
-
-.footer ul li{
-    margin-bottom:15px;
-}
-
-.footer ul li a{
-    color:#d3d3d3;
-}
-
-.footer ul li a:hover{
-    color:#fff;
-}
-
-.newsletter{
-    display:flex;
-    margin-top:20px;
-}
-
-.newsletter input{
-    flex:1;
-    min-width:0;
-    padding:14px;
-    border:none;
-    outline:none;
-}
-
-.newsletter button{
-    background:#fff;
-    color:#000;
-    border:none;
-    padding:14px 20px;
-    font-weight:600;
-    cursor:pointer;
-    white-space:nowrap;
-}
-
-.copyright{
-    text-align:center;
-    padding:20px;
-    border-top:1px solid rgba(255,255,255,.1);
-    color:#bbb;
-}
-
-/* =========================
-   RESPONSIVE — TABLET (≤992px)
-========================= */
-
-@media(max-width:992px){
-
-    .hero-content{
-        flex-direction:column;
-        text-align:center;
-    }
-
-    .hero-text h1{
-        font-size:50px;
-    }
-
-    .feature-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .footer-grid{
-        grid-template-columns:1fr 1fr;
-    }
-}
-
-/* =========================
-   RESPONSIVE — MOBILE (≤768px)
-   Swap the desktop header/nav for the dedicated mobile ones.
-========================= */
-
-@media(max-width:768px){
-
-    /* Hide the entire desktop header stack */
-    .top-bar,
-    .header,
-    .navbar{
-        display:none;
-    }
-
-    /* Show the dedicated mobile header, search row, and drawer */
-    .mobile-header,
-    .mobile-search{
-        display:flex;
-    }
-
-    .mobile-drawer-overlay,
-    .mobile-drawer{
-        display:flex;
-    }
-
-    /* --- Hero --- */
-    .hero-text h1{
-        font-size:36px;
-    }
-
-    .hero-text small{
-        font-size:20px;
-        margin-bottom:16px;
-    }
-
-    .hero-text p{
-        font-size:16px;
-    }
-
-    .hero-buttons{
-        justify-content:center;
-        flex-wrap:wrap;
-    }
-
-    /* --- Features / footer collapse to single column --- */
-    .feature-grid{
-        grid-template-columns:1fr;
-    }
-
-    .footer-grid{
-        grid-template-columns:1fr;
-        gap:36px;
-        padding:48px 0;
-        text-align:center;
-    }
-
-    .footer-social{
-        justify-content:center;
-        display:flex;
-        gap:16px;
-    }
-
-    .newsletter{
-        max-width:360px;
-        margin:20px auto 0;
-    }
-}
-
-/* =========================
-   RESPONSIVE — SMALL PHONE (≤480px)
-========================= */
-
-@media(max-width:480px){
-
-    .mobile-logo span{
-        font-size:14px;
-    }
-
-    .hero-text h1{
-        font-size:28px;
-    }
-}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dr Apple Store{% endblock %}</title>
+
+    <!-- Bootstrap 5 (loaded first so base.css below can override it, e.g. .container) -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <!-- Shared shop theme: fonts, colors, and Bootstrap component restyling -->
+    <link rel="stylesheet" href="{% static 'css/shop-theme.css' %}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ============================================================
+         DESKTOP HEADER (unchanged design, hidden on mobile via CSS)
+         ============================================================ -->
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div>
+                <i class="fas fa-truck"></i>
+                Free shipping on orders over ₦-----
+            </div>
+
+            <div class="top-right">
+                <span><i class="fas fa-phone"></i> +234 xxx xxx xxxx</span>
+                <span><i class="fas fa-envelope"></i> support@drapplestore.com</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+
+            <div class="logo">
+                <i class="fab fa-apple"></i>
+                <div>
+                    <h2>Dr Apple</h2>
+                    <span>Store</span>
+                </div>
+            </div>
+
+            <form method="get" action="{% url 'product_list' %}" class="search-box">
+                <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search for products...">
+
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <div class="header-icons">
+                <a href="{% url 'account:signup' %}"><i class="far fa-user"></i></a>
+                <a href="#"><i class="far fa-heart"></i></a>
+                <a href="{% url 'cart_detail' %}"><i class="fas fa-shopping-bag"></i></a>
+            </div>
+
+
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="{% url 'product_list' %}">Products</a></li>
+                <li><a href="#">New Arrivals</a></li>
+                <li><a href="#">Best Sellers</a></li>
+                <li><a href="#">Deals</a></li>
+                <li><a href="#">Contact Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <!-- ============================================================
+         MOBILE HEADER — dedicated design, only visible ≤768px.
+         Sticky bar: hamburger | store name | cart (with badge).
+         Search sits in its own row directly beneath it.
+         ============================================================ -->
+
+    <div class="mobile-header">
+        <button type="button"
+                class="mobile-menu-btn"
+                id="mobileMenuToggle"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="mobileDrawer">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="mobile-logo">
+            <i class="fab fa-apple"></i>
+            <span>Dr Apple Store</span>
+        </div>
+
+        <a href="{% url 'cart_detail' %}" class="mobile-cart-btn" aria-label="Cart">
+            <i class="fas fa-shopping-bag"></i>
+            {% if cart_count %}
+            <span class="mobile-badge">{{ cart_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="mobile-search">
+        <form method="get" action="{% url 'product_list' %}">
+            <i class="fas fa-search"></i>
+            <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search for products...">
+        </form>
+    </div>
+
+    <!-- Overlay behind the drawer — clicking it closes the menu -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+
+    <!-- Slide-out drawer -->
+    <aside class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <span><i class="fab fa-apple"></i> Dr Apple Store</span>
+            <button type="button" id="mobileDrawerClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <ul class="mobile-drawer-links">
+            <li><a href="/"><i class="fas fa-house"></i> Home</a></li>
+            <li><a href="{% url 'product_list' %}"><i class="fas fa-mobile-screen-button"></i> Products</a></li>
+            <li><a href="#"><i class="fas fa-star"></i> New Arrivals</a></li>
+            <li><a href="#"><i class="fas fa-fire"></i> Best Sellers</a></li>
+            <li><a href="#"><i class="fas fa-tag"></i> Deals</a></li>
+            <li><a href="#"><i class="fas fa-phone"></i> Contact Us</a></li>
+        </ul>
+
+        <div class="mobile-drawer-divider"></div>
+
+        <ul class="mobile-drawer-links mobile-drawer-secondary">
+            <li><a href="#"><i class="far fa-heart"></i> Wishlist</a></li>
+            <li><a href="{% url 'account:signup' %}"><i class="far fa-user"></i> My Account</a></li>
+        </ul>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <div class="container footer-grid">
+
+
+        <div>
+            <h2><i class="fab fa-apple"></i> Dr Apple Store</h2>
+            <p>
+                Your trusted destination for original Apple products
+                and premium accessories.
+            </p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-x-twitter"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+
+
+            <div>
+                <h3>Quick Links</h3>
+
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">Products</a></li>
+                    <li><a href="#">Categories</a></li>
+                    <li><a href="#">Brands</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Customer Service</h3>
+
+                <ul>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">FAQs</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Newsletter</h3>
+
+                <form class="newsletter">
+                    <input type="email" placeholder="Enter your email">
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr Apple Store. All Rights Reserved.
+        </div>
+
+    </footer>
+
+    <!-- Bootstrap bundle (Popper + JS) — needed if you use dropdowns, modals, etc. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Show/hide password toggle: wraps every password field on every page
+         with an eye icon the user can click to reveal what they typed. -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('input[type="password"]').forEach(function (input) {
+                if (input.parentElement.classList.contains('password-toggle-wrap')) {
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'password-toggle-wrap';
+                wrapper.style.position = 'relative';
+
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                input.style.paddingRight = '2.5rem';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.type = 'button';
+                toggleBtn.setAttribute('aria-label', 'Show password');
+                toggleBtn.className = 'password-toggle-btn';
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.right = '0.75rem';
+                toggleBtn.style.top = '50%';
+                toggleBtn.style.transform = 'translateY(-50%)';
+                toggleBtn.style.border = 'none';
+                toggleBtn.style.background = 'none';
+                toggleBtn.style.cursor = 'pointer';
+                toggleBtn.style.color = '#6c757d';
+                toggleBtn.innerHTML = '<i class="far fa-eye"></i>';
+
+                toggleBtn.addEventListener('click', function () {
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    toggleBtn.innerHTML = isHidden
+                        ? '<i class="far fa-eye-slash"></i>'
+                        : '<i class="far fa-eye"></i>';
+                    toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+                });
+
+                wrapper.appendChild(toggleBtn);
+            });
+        });
+    </script>
+
+    <!-- Mobile drawer nav: opens/closes the slide-out menu, closes on
+         overlay click, closes on link tap, and closes automatically if
+         the window is resized back up to desktop width. Also locks
+         background scroll while the drawer is open. -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.getElementById('mobileMenuToggle');
+            const drawer = document.getElementById('mobileDrawer');
+            const overlay = document.getElementById('mobileDrawerOverlay');
+            const closeBtn = document.getElementById('mobileDrawerClose');
+
+            if (!menuToggle || !drawer || !overlay || !closeBtn) {
+                return;
+            }
+
+            function openDrawer() {
+                drawer.classList.add('open');
+                overlay.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                drawer.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('drawer-open');
+            }
+
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                overlay.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                drawer.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('drawer-open');
+            }
+
+            menuToggle.addEventListener('click', openDrawer);
+            closeBtn.addEventListener('click', closeDrawer);
+            overlay.addEventListener('click', closeDrawer);
+
+            // Close automatically after tapping a link inside the drawer
+            drawer.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', closeDrawer);
+            });
+
+            // Safety net: reset drawer state if resized back to desktop
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 768) {
+                    closeDrawer();
+                }
+            });
+
+            // Escape key closes the drawer
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeDrawer();
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

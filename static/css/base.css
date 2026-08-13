@@ -393,6 +393,28 @@ img{
 }
 
 /* =========================
+   AUTH LINKS
+   Scoped class (not a global `a` change) so "Forgot password?",
+   "Sign up here", "Login here", "Back to Login" etc. look clearly
+   clickable, without altering nav/footer link styling elsewhere.
+========================= */
+
+.auth-link{
+    color:#C8912E;
+    font-weight:600;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    display:inline-block;
+    padding:2px 1px; /* small tap-area cushion for mobile without changing layout */
+}
+
+.auth-link:hover,
+.auth-link:focus{
+    color:#a97423;
+    text-decoration:underline;
+}
+
+/* =========================
    HERO SECTION
 ========================= */
 
