@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% block title %}Create Account - Dr Apple Store{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+    .stub-wrap {
+        --forest: #16241C;
+        --forest-light: #2d4a3f;
+        --gold: #C8912E;
+        --gold-soft: #fdf6ec;
+        --paper: #FFFDF8;
+        --ink-soft: #6c757d;
+        --line: rgba(22, 36, 28, 0.14);
+        max-width: 460px;
+        margin: 0 auto;
+    }
+
+    .stub-card {
+        background: var(--paper);
+        border-radius: 20px;
+        box-shadow: 0 18px 40px rgba(22, 36, 28, 0.14);
+        overflow: hidden;
+        border: 1px solid var(--line);
+    }
+
+    .stub-header {
+        background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%);
+        padding: 2.5rem 2rem 3rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .stub-badge {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        border: 2px solid var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: var(--gold);
+        background: rgba(200, 145, 46, 0.08);
+    }
+
+    .stub-header h2 {
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        color: #fff;
+        font-size: 1.6rem;
+        margin: 0 0 0.35rem;
+    }
+
+    .stub-header p {
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 0.88rem;
+        margin: 0;
+        letter-spacing: 0.02em;
+    }
+
+    /* Perforated tear-line between the "stub head" and the form,
+       with punch-hole notches cut into the card's own edges */
+    .stub-tear {
+        position: relative;
+        height: 0;
+        border-top: 2px dashed rgba(255, 255, 255, 0.35);
+        margin: 0 1.75rem;
+    }
+
+    .stub-tear::before,
+    .stub-tear::after {
+        content: '';
+        position: absolute;
+        top: -12px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--paper);
+    }
+
+    .stub-tear::before { left: -1.75rem; }
+    .stub-tear::after { right: -1.75rem; }
+
+    .stub-order-code {
+        text-align: center;
+        margin-top: -1.6rem;
+        margin-bottom: 1.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stub-order-code span {
+        display: inline-block;
+        background: var(--gold-soft);
+        border: 1px solid rgba(200, 145, 46, 0.35);
+        color: var(--forest);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+    }
+
+    .stub-body {
+        padding: 0 2.25rem 2.25rem;
+    }
+
+    .stub-lead {
+        color: var(--ink-soft);
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+    }
+
+    .stub-lead strong {
+        color: var(--forest);
+    }
+
+    .stub-form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .stub-form-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--forest);
+        margin-bottom: 0.4rem;
+        letter-spacing: 0.01em;
+    }
+
+    .stub-wrap input[type="password"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        background: #fff;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .stub-wrap input[type="password"]:focus {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(200, 145, 46, 0.15);
+    }
+
+    .stub-help {
+        font-size: 0.78rem;
+        color: var(--ink-soft);
+        margin-top: 0.4rem;
+        display: block;
+    }
+
+    .stub-error {
+        font-size: 0.8rem;
+        color: #b03636;
+        margin-top: 0.35rem;
+    }
+
+    .stub-submit {
+        width: 100%;
+        border: none;
+        background: var(--forest);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.9rem 1rem;
+        border-radius: 10px;
+        letter-spacing: 0.01em;
+        transition: background 0.15s ease, transform 0.15s ease;
+        margin-top: 0.5rem;
+    }
+
+    .stub-submit:hover {
+        background: var(--forest-light);
+        transform: translateY(-1px);
+    }
+
+    .stub-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.88rem;
+        color: var(--ink-soft);
+    }
+
+    .stub-footer a {
+        color: var(--gold);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .stub-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .stub-messages {
+        max-width: 460px;
+        margin: 0 auto 1.25rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stub-submit { transition: none; }
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="stub-messages">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="stub-wrap">
+        <div class="stub-card">
+            <div class="stub-header">
+                <div class="stub-badge">📦</div>
+                <h2>Track Your Order</h2>
+                <p>One password stands between you and full order history</p>
+            </div>
+
+            <div class="stub-tear"></div>
+
+            <div class="stub-order-code">
+                <span>ORDER {{ order.order_number }}</span>
+            </div>
+
+            <div class="stub-body">
+                <p class="stub-lead">
+                    Your email <strong>{{ order.email }}</strong> is already on file.
+                    Set a password and we'll link this order — plus any others placed
+                    with this email — to your new account.
+                </p>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="stub-form-group">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        {{ form.password1 }}
+                        <small class="stub-help">{{ form.password1.help_text|safe }}</small>
+                        {% if form.password1.errors %}
+                            <div class="stub-error">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="stub-form-group">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="stub-error">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="stub-submit">Create Account</button>
+                </form>
+
+                <div class="stub-footer">
+                    Already have an account? <a href="{% url 'account:login' %}">Log in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

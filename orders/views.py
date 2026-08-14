@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_http_methods
 import urllib.parse
@@ -10,6 +11,14 @@ from decimal import Decimal
 
 from cart.models import Cart, CartItem
 from .models import Order, OrderItem, PickupLocation
+
+# Reused so a post-purchase account is created under the exact same rules
+# as a normal signup: same password complexity, same email verification
+# step, same audit trail. No separate/weaker account-creation path.
+from account.forms import SetNewPasswordForm
+from account.emails import send_verification_email
+from account.decorators import get_client_ip
+from account.models import UserAuditLog
 
 
 def _get_cart(request):
@@ -23,22 +32,13 @@ def _get_cart(request):
 
     cart, _ = Cart.objects.get_or_create(session_key=request.session.session_key, user=None)
     return cart
-"""
-This is ONLY the parts of orders/views.py that change. Everything else in
-your existing orders/views.py (order_review, process_payment,
-payment_confirmation, receipt_upload_success, order_history, order_detail)
-stays exactly as-is.
 
-WHAT TO DO:
-1. Add the two new imports below to the top of orders/views.py.
-2. Add the DELIVERY_FEE_PLACEHOLDER constant near the top (after imports).
-3. Replace your existing `checkout` function with the one below.
-"""
+
 # Flat placeholder fee until real delivery-fee calculation (by state/city,
 # weight, etc.) is implemented. Change this one value to adjust it everywhere.
 DELIVERY_FEE_PLACEHOLDER = Decimal('2000.00')
 
-@login_required
+
 @require_http_methods(["GET", "POST"])
 def checkout(request):
     cart = _get_cart(request)
@@ -125,6 +125,8 @@ def checkout(request):
         'pickup_locations': pickup_locations,
     }
     return render(request, 'checkout.html', context)
+
+
 @require_http_methods(["GET"])
 def order_review(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -257,6 +259,7 @@ def receipt_upload_success(request, order_id):
     }
     return render(request, 'receipt_upload_success.html', context)
 
+
 def order_history(request):
     """
     User order history — show all orders for logged-in user.
@@ -299,3 +302,76 @@ def order_detail(request, order_id):
         'items_with_reviews': items_with_reviews,
     }
     return render(request, 'order_detail.html', context)
+
+
+@require_http_methods(["GET", "POST"])
+def create_account(request, order_id):
+    """
+    Optional post-purchase account creation. Reached from the "Want to track
+    your order easily?" prompt on receipt_upload_success.html. Guests set a
+    password only — name/email/phone are already known from the order.
+
+    Deliberately mirrors account.views.signup exactly: same SetNewPasswordForm
+    complexity rules, same is_active=False + send_verification_email() gate,
+    same UserAuditLog entry, same redirect to account:verification-pending.
+    The only difference from a normal signup is where the email/name come
+    from (the order, not a typed-in form) and that every prior guest order
+    with this email gets linked once the account exists.
+    """
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.user.is_authenticated:
+        return redirect('order_detail', order_id=order.id)
+
+    if order.user_id:
+        messages.info(request, "This order is already linked to an account.")
+        return redirect('product_list')
+
+    if request.method == 'POST':
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            if User.objects.filter(email=order.email).exists():
+                messages.error(request, "An account with this email already exists. Please log in instead.")
+                return redirect('account:login')
+
+            user = User.objects.create(
+                username=order.email,
+                email=order.email,
+                first_name=order.full_name.split(' ')[0],
+                is_active=False,  # same email-verification gate as normal signup
+            )
+            user.set_password(form.cleaned_data['password1'])
+            user.save()
+
+            # Link this order + any other guest orders placed with the same email.
+            Order.objects.filter(email=order.email, user__isnull=True).update(user=user)
+
+            UserAuditLog.objects.create(
+                user=user,
+                action='signup',
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
+                details={'email': user.email, 'source': 'post_purchase'},
+            )
+
+            email_sent = send_verification_email(user, request)
+            request.session['pending_verification_user_id'] = user.pk
+
+            if email_sent:
+                messages.success(request, '✅ Account created! Check your email to verify your address.')
+            else:
+                messages.warning(
+                    request,
+                    '⚠️ Account created, but we couldn\'t send the verification '
+                    'email right now. Use the "Resend verification email" button '
+                    'to try again in a moment.'
+                )
+            return redirect('account:verification-pending')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.title()}: {error}')
+    else:
+        form = SetNewPasswordForm()
+
+    return render(request, 'create_account.html', {'order': order, 'form': form})

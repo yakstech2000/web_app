@@ -2,50 +2,76 @@
 {% block title %}Resend Verification - Dr Apple Store{% endblock %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+
+<style>
+    .auth-shell {
+        --forest: #16241C; --forest-light: #2d4a3f; --gold: #C8912E;
+        --gold-soft: #fdf6ec; --paper: #FFFDF8; --ink-soft: #6c757d;
+        --line: rgba(22, 36, 28, 0.14);
+        max-width: 440px; margin: 0 auto;
+    }
+    .auth-card { background: var(--paper); border-radius: 20px; box-shadow: 0 18px 40px rgba(22, 36, 28, 0.14); overflow: hidden; border: 1px solid var(--line); text-align: center; }
+    .auth-header { background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%); padding: 2.5rem 2rem 2rem; }
+    .auth-badge { width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--gold); background: rgba(200, 145, 46, 0.08); }
+    .auth-header h2 { font-family: 'Fraunces', serif; font-weight: 600; color: #fff; font-size: 1.5rem; margin: 0; }
+    .auth-body { padding: 2rem 2.25rem 2.25rem; }
+    .auth-lead { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.65; margin-bottom: 1.75rem; }
+    .auth-lead strong { color: var(--forest); }
+    .auth-submit {
+        border: none; background: var(--gold); color: var(--forest);
+        font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.75rem;
+        border-radius: 10px; transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .auth-submit:hover:not(:disabled) { background: #dba645; transform: translateY(-1px); }
+    .auth-submit:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; transform: none; }
+    .auth-cooldown { color: var(--ink-soft); font-size: 0.85rem; margin-top: 0.9rem; }
+    .auth-cooldown span { font-weight: 700; color: var(--forest); font-family: 'JetBrains Mono', monospace; }
+    @media (prefers-reduced-motion: reduce) { .auth-submit { transition: none; } }
+</style>
+
 <div class="container mt-5 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5">
-            <div class="card shadow">
-                <div class="card-body p-5">
+    <div class="auth-shell">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-badge">📧</div>
+                <h2>Verify Your Email</h2>
+            </div>
+            <div class="auth-body">
+                <p class="auth-lead">We sent a verification link to <strong>{{ user.email }}</strong>. Click it to activate your account.</p>
 
-
-                    <div class="container">
-                      <h2>Verify your email</h2>
-                      <p>We sent a verification link to <strong>{{ user.email }}</strong>. Click it to activate your account.</p>
-
-                      <form method="post" id="resend-form">
-                        {% csrf_token %}
-                        <button type="submit" id="resend-btn" {% if cooldown_remaining > 0 %}disabled{% endif %}>
-                          Resend verification email
-                        </button>
-                        <p id="cooldown-text" style="{% if cooldown_remaining == 0 %}display:none;{% endif %}">
-                          You can resend in <span id="countdown">{{ cooldown_remaining }}</span>s
-                        </p>
-                      </form>
-                    </div>
-
-                    <script>
-                      let remaining = {{ cooldown_remaining }};
-                      const btn = document.getElementById('resend-btn');
-                      const text = document.getElementById('cooldown-text');
-                      const countEl = document.getElementById('countdown');
-
-                      if (remaining > 0) {
-                        const timer = setInterval(() => {
-                          remaining -= 1;
-                          countEl.textContent = remaining;
-                          if (remaining <= 0) {
-                            clearInterval(timer);
-                            btn.disabled = false;
-                            text.style.display = 'none';
-                          }
-                        }, 1000);
-                      }
-                    </script>
-
-                </div>
+                <form method="post" id="resend-form">
+                    {% csrf_token %}
+                    <button type="submit" id="resend-btn" class="auth-submit" {% if cooldown_remaining > 0 %}disabled{% endif %}>
+                        Resend verification email
+                    </button>
+                    <p id="cooldown-text" class="auth-cooldown" style="{% if cooldown_remaining == 0 %}display:none;{% endif %}">
+                        You can resend in <span id="countdown">{{ cooldown_remaining }}</span>s
+                    </p>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+  let remaining = {{ cooldown_remaining }};
+  const btn = document.getElementById('resend-btn');
+  const text = document.getElementById('cooldown-text');
+  const countEl = document.getElementById('countdown');
+
+  if (remaining > 0) {
+    const timer = setInterval(() => {
+      remaining -= 1;
+      countEl.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        text.style.display = 'none';
+      }
+    }, 1000);
+  }
+</script>
 {% endblock %}

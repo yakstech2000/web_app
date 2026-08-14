@@ -2,20 +2,44 @@
 {% block title %}Verify Email - Dr Apple Store{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5">
-            <div class="card shadow">
-                <div class="card-body p-5 text-center">
-                    <h2 class="mb-4">📧 Verify Your Email</h2>
-                    <p>We've sent a verification link to your email. Please click the link to activate your account.</p>
-                    <p>The link expires in 24 hours.</p>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
 
-                    <form method="post" action="{% url 'account:resend-verification' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-lg">Resend Verification Email</button>
-                    </form>
-                </div>
+<style>
+    .auth-shell {
+        --forest: #16241C; --forest-light: #2d4a3f; --gold: #C8912E;
+        --gold-soft: #fdf6ec; --paper: #FFFDF8; --ink-soft: #6c757d;
+        --line: rgba(22, 36, 28, 0.14);
+        max-width: 440px; margin: 0 auto;
+    }
+    .auth-card { background: var(--paper); border-radius: 20px; box-shadow: 0 18px 40px rgba(22, 36, 28, 0.14); overflow: hidden; border: 1px solid var(--line); text-align: center; }
+    .auth-header { background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%); padding: 2.5rem 2rem 2rem; }
+    .auth-badge { width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--gold); background: rgba(200, 145, 46, 0.08); }
+    .auth-header h2 { font-family: 'Fraunces', serif; font-weight: 600; color: #fff; font-size: 1.5rem; margin: 0; }
+    .auth-body { padding: 2rem 2.25rem 2.25rem; }
+    .auth-lead { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.65; margin-bottom: 0.5rem; }
+    .auth-lead:last-of-type { margin-bottom: 1.75rem; }
+    .auth-submit { border: none; background: var(--gold); color: var(--forest); font-weight: 700; font-size: 0.95rem; padding: 0.85rem 1.75rem; border-radius: 10px; transition: background 0.15s ease, transform 0.15s ease; }
+    .auth-submit:hover { background: #dba645; transform: translateY(-1px); }
+    @media (prefers-reduced-motion: reduce) { .auth-submit { transition: none; } }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="auth-shell">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-badge">📧</div>
+                <h2>Verify Your Email</h2>
+            </div>
+            <div class="auth-body">
+                <p class="auth-lead">We've sent a verification link to your email. Please click the link to activate your account.</p>
+                <p class="auth-lead">The link expires in 24 hours.</p>
+
+                <form method="post" action="{% url 'account:resend-verification' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="auth-submit">Resend Verification Email</button>
+                </form>
             </div>
         </div>
     </div>

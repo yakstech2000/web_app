@@ -166,6 +166,81 @@
                 You'll need this for tracking and inquiries.
             </div>
 
+            <!-- Account creation prompt: only shown to guests, only reached
+                 after the order is fully placed — never a gate before checkout -->
+            {% if not request.user.is_authenticated %}
+            <style>
+                .rus-stub {
+                    --forest: #16241C;
+                    --forest-light: #2d4a3f;
+                    --gold: #C8912E;
+                    background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%);
+                    border-radius: 16px;
+                    padding: 1.75rem;
+                    margin-bottom: 1.5rem;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .rus-stub::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 2rem;
+                    right: 2rem;
+                    height: 0;
+                    border-top: 2px dashed rgba(255, 255, 255, 0.25);
+                }
+                .rus-stub-inner {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1.25rem;
+                    flex-wrap: wrap;
+                }
+                .rus-stub-text h5 {
+                    color: #fff;
+                    font-weight: 700;
+                    margin-bottom: 0.35rem;
+                    font-size: 1.05rem;
+                }
+                .rus-stub-text p {
+                    color: rgba(255, 255, 255, 0.65);
+                    font-size: 0.88rem;
+                    margin: 0;
+                }
+                .rus-stub-btn {
+                    background: var(--gold);
+                    color: var(--forest);
+                    font-weight: 700;
+                    border: none;
+                    padding: 0.7rem 1.5rem;
+                    border-radius: 10px;
+                    white-space: nowrap;
+                    text-decoration: none;
+                    transition: transform 0.15s ease, background 0.15s ease;
+                    flex-shrink: 0;
+                }
+                .rus-stub-btn:hover {
+                    background: #dba645;
+                    transform: translateY(-1px);
+                    color: var(--forest);
+                }
+                @media (max-width: 480px) {
+                    .rus-stub-inner { flex-direction: column; align-items: stretch; text-align: center; }
+                    .rus-stub-btn { width: 100%; }
+                }
+            </style>
+            <div class="rus-stub">
+                <div class="rus-stub-inner">
+                    <div class="rus-stub-text">
+                        <h5>📦 Want to track your order easily?</h5>
+                        <p>Create a password to view your order status and history anytime.</p>
+                    </div>
+                    <a href="{% url 'create_account' order.id %}" class="rus-stub-btn">Create Account</a>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Action Buttons -->
             <div class="d-grid gap-2">
                 {% if request.user.is_authenticated %}

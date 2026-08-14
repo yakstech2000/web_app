@@ -2,32 +2,87 @@
 {% block title %}Security Log - Dr Apple Store{% endblock %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+    .log-shell {
+        --forest: #16241C; --forest-light: #2d4a3f; --gold: #C8912E;
+        --paper: #FFFDF8; --ink-soft: #6c757d; --line: rgba(22, 36, 28, 0.12);
+        max-width: 820px; margin: 0 auto;
+    }
+    .log-card { background: var(--paper); border-radius: 20px; box-shadow: 0 18px 40px rgba(22, 36, 28, 0.12); overflow: hidden; border: 1px solid var(--line); }
+    .log-header { background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 100%); padding: 1.75rem 2rem; display: flex; align-items: center; gap: 0.85rem; }
+    .log-header-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(200, 145, 46, 0.12); border: 1.5px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: var(--gold); flex-shrink: 0; }
+    .log-header h2 { font-family: 'Fraunces', serif; font-weight: 600; color: #fff; font-size: 1.35rem; margin: 0; }
+    .log-body { padding: 0.5rem 0 0.5rem; }
+    .log-table { width: 100%; border-collapse: collapse; }
+    .log-table thead th {
+        text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--ink-soft); font-weight: 700; padding: 1rem 2rem 0.6rem; border-bottom: 1px solid var(--line);
+    }
+    .log-table tbody td { padding: 0.9rem 2rem; font-size: 0.9rem; color: var(--forest); border-bottom: 1px solid var(--line); }
+    .log-table tbody tr:last-child td { border-bottom: none; }
+    .log-table tbody tr:hover { background: rgba(200, 145, 46, 0.05); }
+    .log-ip { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--ink-soft); }
+    .log-empty { text-align: center; padding: 2.5rem 2rem !important; color: var(--ink-soft); }
+    .log-footer { padding: 1.5rem 2rem 2rem; }
+    .log-back {
+        display: inline-block; color: var(--forest); font-weight: 600; font-size: 0.9rem;
+        text-decoration: none; border: 1.5px solid var(--line); padding: 0.6rem 1.25rem; border-radius: 10px;
+        transition: border-color 0.15s ease, color 0.15s ease;
+    }
+    .log-back:hover { border-color: var(--gold); color: var(--forest); }
+    /* Action badge keeps the model's dynamic bootstrap color via inline
+       style — this just restyles the pill shape/type around it */
+    .log-action-badge {
+        display: inline-block; padding: 0.3rem 0.75rem; border-radius: 999px;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
+        text-transform: uppercase; color: #fff;
+    }
+    @media (max-width: 576px) {
+        .log-table thead th, .log-table tbody td { padding-left: 1.1rem; padding-right: 1.1rem; }
+    }
+</style>
+
 <div class="container mt-5 mb-5">
-    <h2 class="mb-4">🛡️ Security Log</h2>
-
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>IP Address</th>
-                    <th>Date/Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in audit_logs %}
-                <tr>
-                    <td><span class="badge" style="background-color: var(--bs-{{ log.get_action_color|default:'secondary' }});">{{ log.get_action_display }}</span></td>
-                    <td>{{ log.ip_address }}</td>
-                    <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" class="text-center">No activity yet</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="log-shell">
+        <div class="log-card">
+            <div class="log-header">
+                <div class="log-header-icon">🛡</div>
+                <h2>Security Log</h2>
+            </div>
+            <div class="log-body">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>IP Address</th>
+                            <th>Date / Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                        <tr>
+                            <td>
+                                <span class="log-action-badge" style="background-color: var(--bs-{{ log.get_action_color|default:'secondary' }});">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+                            <td class="log-ip">{{ log.ip_address }}</td>
+                            <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="log-empty">No activity yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="log-footer">
+                <a href="{% url 'account:dashboard' %}" class="log-back">← Back to Dashboard</a>
+            </div>
+        </div>
     </div>
-
-    <a href="{% url 'account:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
 {% endblock %}
