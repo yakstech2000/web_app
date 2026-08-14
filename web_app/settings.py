@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'django.contrib.humanize',
+    'anymail',
     'product',
     'cart',
     'orders',
@@ -186,15 +187,16 @@ MEDIA_URL = 'media/'
 # some code/forms may still reference it, so it's left defined harmlessly.
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = 'Dr Apple Store <noreply@drapplestore.com>'
-EMAIL_TIMEOUT = 10  # seconds
+# Email Configuration — via Resend HTTP API (Railway blocks outbound SMTP,
+# so raw smtplib connections fail with "Network is unreachable" — this
+# sends over HTTPS instead, which isn't blocked)
+EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+
+ANYMAIL = {
+    'RESEND_API_KEY': config('RESEND_API_KEY'),
+}
+
+DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'  # switch to your own verified domain later
 # Security settings — Secure cookies only make sense over HTTPS. Forcing
 # them on during local development (DEBUG=True, plain http://127.0.0.1)
 # silently breaks login/CSRF locally, since browsers refuse to store
