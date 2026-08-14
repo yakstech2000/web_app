@@ -194,7 +194,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'Dr Apple Store <noreply@drapplestore.com>'
-
+EMAIL_TIMEOUT = 10  # seconds
 # Security settings — Secure cookies only make sense over HTTPS. Forcing
 # them on during local development (DEBUG=True, plain http://127.0.0.1)
 # silently breaks login/CSRF locally, since browsers refuse to store
