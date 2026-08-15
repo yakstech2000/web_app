@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -11,12 +12,11 @@ from decimal import Decimal
 
 from cart.models import Cart, CartItem
 from .models import Order, OrderItem, PickupLocation
+from product.models import Product
 
-# Reused so a post-purchase account is created under the exact same rules
-# as a normal signup: same password complexity, same email verification
-# step, same audit trail. No separate/weaker account-creation path.
+# Reused so a post-purchase account is created under the same password
+# rules and audit logging as a normal signup.
 from account.forms import SetNewPasswordForm
-from account.emails import send_verification_email
 from account.decorators import get_client_ip
 from account.models import UserAuditLog
 
@@ -39,17 +39,73 @@ def _get_cart(request):
 DELIVERY_FEE_PLACEHOLDER = Decimal('2000.00')
 
 
+class _BuyNowItem:
+    """
+    Stands in for a CartItem in the "Buy Now" flow, which deliberately
+    never touches the Cart/CartItem models. Exposes the same .product,
+    .quantity, .get_subtotal() interface checkout.html already renders,
+    so the template needs zero changes to support both flows.
+    """
+    def __init__(self, product, quantity):
+        self.product = product
+        self.quantity = quantity
+
+    def get_subtotal(self):
+        return self.product.selling_price * self.quantity
+
+
+@require_http_methods(["POST"])
+def buy_now(request, product_id):
+    """
+    Skips the cart entirely. Stores just this product + quantity in the
+    session and sends the shopper straight to checkout — the cart (if they
+    have one) is left completely untouched.
+    """
+    product = get_object_or_404(Product, id=product_id)
+
+    if not product.is_available or product.stock_quantity < 1:
+        messages.error(request, f"{product.name} is currently out of stock.")
+        return redirect('product_detail', product_id)
+
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (TypeError, ValueError):
+        quantity = 1
+    quantity = max(1, min(quantity, product.stock_quantity))
+
+    request.session['buy_now'] = {'product_id': product.id, 'quantity': quantity}
+    return redirect('checkout')
+
+
 @require_http_methods(["GET", "POST"])
 def checkout(request):
-    cart = _get_cart(request)
-    items = cart.items.select_related('product').all()
+    buy_now_data = request.session.get('buy_now')
+    cart = None
 
-    if not items.exists():
-        messages.error(request, "Your cart is empty.")
-        return redirect('cart_detail')
+    if buy_now_data:
+        product = get_object_or_404(Product, id=buy_now_data['product_id'])
+        quantity = min(buy_now_data['quantity'], product.stock_quantity)
+
+        if not product.is_available or quantity < 1:
+            messages.error(request, f"{product.name} is no longer available in that quantity.")
+            del request.session['buy_now']
+            return redirect('product_detail', product.id)
+
+        items = [_BuyNowItem(product, quantity)]
+        subtotal = items[0].get_subtotal()
+        total_items = quantity
+    else:
+        cart = _get_cart(request)
+        items = cart.items.select_related('product').all()
+
+        if not items.exists():
+            messages.error(request, "Your cart is empty.")
+            return redirect('cart_detail')
+
+        subtotal = cart.get_total_price()
+        total_items = cart.get_total_items()
 
     pickup_locations = PickupLocation.objects.filter(is_active=True)
-    subtotal = cart.get_total_price()
 
     if request.method == 'POST':
         fulfillment_method = request.POST.get('fulfillment_method', Order.FULFILLMENT_DELIVERY)
@@ -102,16 +158,19 @@ def checkout(request):
             pickup_location=pickup_location,
         )
 
-        for cart_item in items:
+        for line_item in items:
             OrderItem.objects.create(
                 order=order,
-                product=cart_item.product,
-                product_name=cart_item.product.name,
-                price=cart_item.product.selling_price,
-                quantity=cart_item.quantity,
+                product=line_item.product,
+                product_name=line_item.product.name,
+                price=line_item.product.selling_price,
+                quantity=line_item.quantity,
             )
 
-        cart.items.all().delete()
+        if cart is not None:
+            cart.items.all().delete()
+        if buy_now_data:
+            del request.session['buy_now']
 
         messages.success(request, f"Order created: {order.order_number}")
         return redirect('order_review', order_id=order.id)
@@ -119,7 +178,7 @@ def checkout(request):
     context = {
         'cart': cart,
         'items': items,
-        'total_items': cart.get_total_items(),
+        'total_items': total_items,
         'subtotal': subtotal,
         'total_price': subtotal,
         'pickup_locations': pickup_locations,
@@ -237,7 +296,7 @@ Please assist me with payment details."""
         'whatsapp_number': whatsapp_number,
         'whatsapp_message': whatsapp_message,
     }
-    return render(request, 'Payment_confirmation.html', context)
+    return render(request, 'payment_confirmation.html', context)
 
 
 def receipt_upload_success(request, order_id):
@@ -311,12 +370,12 @@ def create_account(request, order_id):
     your order easily?" prompt on receipt_upload_success.html. Guests set a
     password only — name/email/phone are already known from the order.
 
-    Deliberately mirrors account.views.signup exactly: same SetNewPasswordForm
-    complexity rules, same is_active=False + send_verification_email() gate,
-    same UserAuditLog entry, same redirect to account:verification-pending.
-    The only difference from a normal signup is where the email/name come
-    from (the order, not a typed-in form) and that every prior guest order
-    with this email gets linked once the account exists.
+    TEMPORARY: email verification is disabled site-wide until transactional
+    email (Resend/Anymail) is wired up — Railway blocks outbound SMTP, so a
+    verification link could never arrive. Accounts are active immediately.
+    Revert to the is_active=False + send_verification_email() version (see
+    git history / earlier version of this function) once email sending is
+    confirmed working again, and log the user in only after verification.
     """
     order = get_object_or_404(Order, id=order_id)
 
@@ -338,7 +397,7 @@ def create_account(request, order_id):
                 username=order.email,
                 email=order.email,
                 first_name=order.full_name.split(' ')[0],
-                is_active=False,  # same email-verification gate as normal signup
+                is_active=True,  # TEMPORARY — see note above
             )
             user.set_password(form.cleaned_data['password1'])
             user.save()
@@ -354,19 +413,9 @@ def create_account(request, order_id):
                 details={'email': user.email, 'source': 'post_purchase'},
             )
 
-            email_sent = send_verification_email(user, request)
-            request.session['pending_verification_user_id'] = user.pk
-
-            if email_sent:
-                messages.success(request, '✅ Account created! Check your email to verify your address.')
-            else:
-                messages.warning(
-                    request,
-                    '⚠️ Account created, but we couldn\'t send the verification '
-                    'email right now. Use the "Resend verification email" button '
-                    'to try again in a moment.'
-                )
-            return redirect('account:verification-pending')
+            login(request, user)
+            messages.success(request, "Account created! You can now track all your orders here.")
+            return redirect('order_history')
         else:
             for field, errors in form.errors.items():
                 for error in errors:

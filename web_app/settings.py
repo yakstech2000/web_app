@@ -193,7 +193,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
 
 ANYMAIL = {
-    'RESEND_API_KEY': config('RESEND_API_KEY'),
+    'RESEND_API_KEY': config('RESEND_API_KEY', default=''),
 }
 
 DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'  # switch to your own verified domain later

@@ -35,12 +35,14 @@
   border: 1px solid var(--sl-line);
   border-radius: var(--sl-radius);
   overflow: hidden;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .detail-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -146,6 +148,153 @@
   border-top: 1px dashed var(--sl-line);
 }
 
+/* ---- quantity stepper -------------------------------------------------- */
+
+.detail-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-qty-stepper {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--sl-line);
+  border-radius: var(--sl-radius);
+  overflow: hidden;
+  background: #fff;
+}
+
+.detail-qty-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: var(--sl-surface);
+  color: var(--sl-ink);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.detail-qty-btn:hover {
+  background: var(--sl-line);
+}
+
+.detail-qty-input {
+  width: 48px;
+  height: 38px;
+  border: none;
+  border-left: 1px solid var(--sl-line);
+  border-right: 1px solid var(--sl-line);
+  text-align: center;
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  color: var(--sl-ink);
+  -moz-appearance: textfield;
+}
+
+.detail-qty-input::-webkit-outer-spin-button,
+.detail-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.detail-qty-input:focus {
+  outline: none;
+}
+
+.detail-qty-total {
+  font-family: var(--sl-font-mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--sl-ink);
+  margin-left: auto;
+}
+
+/* ---- purchase buttons ---------------------------------------------------- */
+
+.detail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--sl-radius);
+  font-family: var(--sl-font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+}
+
+.detail-btn:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.detail-btn-buynow {
+  background: var(--sl-accent);
+  color: var(--sl-green);
+  box-shadow: 0 6px 14px -6px rgba(200, 145, 46, 0.55);
+}
+
+.detail-btn-buynow:hover {
+  background: #dba645;
+  color: var(--sl-green);
+  box-shadow: 0 10px 20px -8px rgba(200, 145, 46, 0.6);
+}
+
+.detail-btn-cart {
+  background: var(--sl-green);
+  color: #fff;
+}
+
+.detail-btn-cart:hover {
+  background: #1e3a2f;
+  color: #fff;
+}
+
+.detail-btn-wishlist {
+  background: #fff;
+  color: #b03636;
+  border-color: #b03636;
+}
+
+.detail-btn-wishlist:hover {
+  background: #fdf1f1;
+  color: #b03636;
+}
+
+.detail-btn-disabled {
+  background: var(--sl-surface);
+  color: var(--sl-ink-soft);
+  cursor: not-allowed;
+}
+
+.detail-btn-related {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  background: #fff;
+  color: var(--sl-green);
+  border-color: var(--sl-line);
+}
+
+.detail-btn-related:hover {
+  border-color: var(--sl-green);
+  color: var(--sl-green);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-btn { transition: none; }
+}
+
 /* ---- related products ------------------------------------------------------ */
 
 .related-card {
@@ -230,6 +379,7 @@
   .detail-thumb { width: 60px; height: 60px; }
   .detail-price-card { padding: 1rem; }
   .price-tag-lg { font-size: 1.15rem; }
+  .detail-qty-total { margin-left: 0; }
 }
 
 @media (max-width: 480px) {
