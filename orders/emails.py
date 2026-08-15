@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
@@ -22,7 +23,7 @@ def send_payment_confirmed_email(order):
     send_mail(
         subject=subject,
         message=f"Your payment for order {order.order_number} has been confirmed!",
-        from_email='noreply@drapplestore.com',
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[order.email],
         html_message=html_message,
         fail_silently=False,
@@ -65,7 +66,7 @@ def send_order_shipped_email(order):
     send_mail(
         subject=subject,
         message=plain_message,
-        from_email='noreply@drapplestore.com',
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[order.email],
         html_message=html_message,
         fail_silently=False,
@@ -92,7 +93,7 @@ def send_order_cancelled_email(order):
     send_mail(
         subject=subject,
         message=f"Your order {order.order_number} has been cancelled.",
-        from_email='noreply@drapplestore.com',
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[order.email],
         html_message=html_message,
         fail_silently=False,
