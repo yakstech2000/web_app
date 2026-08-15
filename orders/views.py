@@ -296,7 +296,7 @@ Please assist me with payment details."""
         'whatsapp_number': whatsapp_number,
         'whatsapp_message': whatsapp_message,
     }
-    return render(request, 'Payment_confirmation.html', context)
+    return render(request, 'payment_confirmation.html', context)
 
 
 def receipt_upload_success(request, order_id):
@@ -319,14 +319,11 @@ def receipt_upload_success(request, order_id):
     return render(request, 'receipt_upload_success.html', context)
 
 
+@login_required(login_url='account:login')
 def order_history(request):
     """
     User order history — show all orders for logged-in user.
     """
-    if not request.user.is_authenticated:
-        messages.error(request, "You must be logged in to view your orders.")
-        return redirect('account:login')
-
     orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')
 
     context = {

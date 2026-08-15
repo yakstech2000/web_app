@@ -46,7 +46,7 @@ def signup(request):
     - Email verification required
     """
     if request.user.is_authenticated:
-        return redirect('account:dashboard')
+        return redirect('order_history')
 
     if request.method == 'POST':
         form = SecureSignUpForm(request.POST)
@@ -102,7 +102,7 @@ def login_view(request):
     - Generic error messages
     """
     if request.user.is_authenticated:
-        return redirect('account:dashboard')
+        return redirect('order_history')
 
     if request.method == 'POST':
         form = SecureLoginForm(request.POST)
@@ -178,8 +178,11 @@ def login_view(request):
 
                 messages.success(request, f'👋 Welcome back, {user.first_name or user.username}!')
 
-                # Redirect to next page or dashboard
-                next_url = request.GET.get('next') or reverse('account:dashboard')
+                # Redirect to wherever they were headed (e.g. an order-status
+                # email's "View My Orders" link, which appends ?next=...),
+                # or straight to their order history by default — not the
+                # dashboard, so logging in feels like "see my orders" first.
+                next_url = request.GET.get('next') or reverse('order_history')
                 return redirect(next_url)
             else:
                 # Login failed
@@ -305,7 +308,7 @@ def resend_verification(request):
 def password_reset(request):
     """Request password reset"""
     if request.user.is_authenticated:
-        return redirect('account:dashboard')
+        return redirect('order_history')
 
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
