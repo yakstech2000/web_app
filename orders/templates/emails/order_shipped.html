@@ -54,7 +54,7 @@
                 <div class="item" style="border-top: 2px solid #ddd; padding-top: 8px; margin-top: 8px;">
                     <div style="display: flex; justify-content: space-between; font-weight: 600;">
                         <span>Total Amount:</span>
-                        <span>${{ order.total_price }}</span>
+                        <span>₦{{ order.total_price|intcomma }}</span>
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
             </ul>
 
             <div style="text-align: center;">
-                <a href="https://yourdomain.com/my-orders/" class="button">Track Order</a>
+                <a href="{{ order_url }}" class="button">Track Order</a>
             </div>
 
             <p style="margin-top: 30px;">

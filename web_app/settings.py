@@ -197,6 +197,15 @@ ANYMAIL = {
 }
 
 DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'  # switch to your own verified domain later
+
+# Used to build absolute links (e.g. "View My Orders" buttons) inside
+# order-status emails, which don't have access to an HttpRequest to call
+# request.build_absolute_uri() the way account/emails.py does. Set this on
+# Railway to your real deployed URL, e.g.:
+# SITE_URL=https://drapple-production.up.railway.app
+# and update it again once you're on a real domain.
+SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')
+
 # Security settings — Secure cookies only make sense over HTTPS. Forcing
 # them on during local development (DEBUG=True, plain http://127.0.0.1)
 # silently breaks login/CSRF locally, since browsers refuse to store
