@@ -1,4 +1,5 @@
 {% extends "admin/base_site.html" %}
+{% load humanize %}
 {% load i18n static %}
 
 {% block extrastyle %}
@@ -118,7 +119,7 @@
                 <div class="dr-panel-header">
                     <span>Sales Overview</span><span class="dr-panel-tag">This Week</span>
                 </div>
-                <div class="dr-panel-value">₦{{ admin_dashboard.this_month_sales|floatformat:0 }}</div>
+                <div class="dr-panel-value">₦{{ admin_dashboard.this_month_sales|floatformat:0|intcomma }}</div>
                 <div class="dr-panel-sub">Total Sales (this month)</div>
                 <canvas id="dr-sales-chart" height="70"></canvas>
             </div>
