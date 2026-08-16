@@ -1,9 +1,6 @@
 /* ==========================================================
    Confirm Payment — Black / Red / White / Gray theme
-   Drop this into base.html as a <link>, or paste inside a
-   <style> tag at the top of confirm_payment.html.
-   Targets only the classes/elements already in the existing
-   template — no HTML structure is assumed or required.
+   Used by orders/templates/payment_confirmation.html
    ========================================================== */
 
 :root {
@@ -18,7 +15,6 @@
     --pay-gray-700: #4a4a4a;
 }
 
-/* Page title */
 .page-title {
     color: var(--pay-black);
     font-weight: 700;
@@ -27,7 +23,6 @@
     display: inline-block;
 }
 
-/* Cards */
 .card.border-0 {
     background: var(--pay-white);
     border-radius: 10px;
@@ -46,7 +41,6 @@
     color: var(--pay-gray-700);
 }
 
-/* Alerts */
 .alert-info {
     background: var(--pay-gray-50);
     border: none;
@@ -66,14 +60,12 @@
     color: var(--pay-gray-700);
 }
 
-/* Bank transfer details block */
 .card-body div[style*="background: #f9f9f9"] {
     background: var(--pay-gray-50) !important;
     border: 1px solid var(--pay-gray-300);
     border-radius: 8px;
 }
 
-/* Buttons */
 .btn-primary {
     background: var(--pay-black);
     border-color: var(--pay-black);
@@ -85,10 +77,13 @@
     background: var(--pay-red);
     border-color: var(--pay-red);
 }
+.btn-primary:disabled {
+    background: var(--pay-gray-500);
+    border-color: var(--pay-gray-500);
+    opacity: 0.85;
+    cursor: not-allowed;
+}
 
-/* WhatsApp button keeps its brand green — everything else in the
-   palette stays black/red/white/gray, but this one is an exception
-   for recognizability. */
 .btn-success {
     background: #25d366;
     border-color: #25d366;
@@ -112,7 +107,6 @@
     border-color: var(--pay-gray-500);
 }
 
-/* Price tags */
 .price-tag {
     color: var(--pay-red);
     font-weight: 700;
@@ -123,7 +117,6 @@
     font-weight: 700;
 }
 
-/* Form fields */
 .form-control,
 .form-control:focus {
     border: 1px solid var(--pay-gray-300);
@@ -134,6 +127,10 @@
     border-color: var(--pay-red);
     box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
 }
+.form-control:disabled {
+    background: var(--pay-gray-100);
+    opacity: 0.7;
+}
 .form-label {
     color: var(--pay-black);
     font-weight: 500;
@@ -142,16 +139,61 @@
     color: var(--pay-gray-500) !important;
 }
 
-/* File input specifically */
 input[type="file"].form-control {
     background: var(--pay-gray-50);
     padding: 0.6rem;
 }
 
-/* Labels/strong text inside the bank details grid */
 .card-body strong {
     color: var(--pay-black);
 }
 .card-body small[style*="color: var(--sl-ink-soft)"] {
     color: var(--pay-gray-500) !important;
+}
+
+/* ---- Upload loading state ---- */
+
+.receipt-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: receipt-spin 0.7s linear infinite;
+    margin-right: 0.5rem;
+    vertical-align: -0.15em;
+}
+
+/* Used inside .receipt-uploading-note, which sits on a light gray
+   background — the default white-on-transparent spinner above is meant
+   for the dark button and would be invisible here. */
+.receipt-spinner--dark {
+    border-color: rgba(26, 26, 26, 0.2);
+    border-top-color: var(--pay-black);
+}
+
+@keyframes receipt-spin {
+    to { transform: rotate(360deg); }
+}
+
+.receipt-uploading-note {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--pay-gray-50);
+    border-left: 4px solid var(--pay-black);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--pay-gray-700);
+}
+
+.receipt-uploading-note.active {
+    display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .receipt-spinner { animation: none; }
 }

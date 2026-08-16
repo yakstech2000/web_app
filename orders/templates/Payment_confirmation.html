@@ -6,6 +6,7 @@
       {% load static %}
 {% load humanize %}
      <link rel="stylesheet" href="{% static 'orders/css/confirm_payment.css' %}">
+
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -123,45 +124,65 @@
                             <h5 class="mb-0">Upload Payment Receipt</h5>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info mb-3">
-                                <i class="fas fa-upload"></i> After completing payment, upload your receipt here as proof.
-                            </div>
-
-                            <form method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-
-                                <div class="form-group mb-3">
-                                    <label for="receipt" class="form-label">
-                                        <i class="fas fa-image"></i> Choose Receipt Image
-                                    </label>
-                                    <input
-                                        type="file"
-                                        class="form-control"
-                                        id="receipt"
-                                        name="receipt"
-                                        accept="image/*,.pdf"
-                                        required
-                                    >
-                                    <small class="text-muted d-block mt-2">
-                                        PNG, JPG, GIF, PDF (Max 5MB)
-                                    </small>
+                            {% if order.payment_receipt %}
+                                <!-- A receipt is already on file — the backend also rejects a
+                                     second POST for this order, this is just the friendly
+                                     version of that same rule for someone loading the page
+                                     directly rather than double-submitting. -->
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-check-circle"></i>
+                                    A receipt has already been uploaded for this order.
+                                    We'll review it shortly.
+                                </div>
+                                <a href="{% url 'receipt_upload_success' order.id %}" class="btn btn-primary w-100 mt-3">
+                                    View Confirmation
+                                </a>
+                            {% else %}
+                                <div class="alert alert-info mb-3">
+                                    <i class="fas fa-upload"></i> After completing payment, upload your receipt here as proof.
                                 </div>
 
-                                <div class="form-group mb-4">
-                                    <label for="notes" class="form-label">Additional Notes (Optional)</label>
-                                    <textarea
-                                        class="form-control"
-                                        id="notes"
-                                        name="notes"
-                                        rows="2"
-                                        placeholder="e.g., Transfer reference, payment time, etc."
-                                    ></textarea>
-                                </div>
+                                <form method="post" enctype="multipart/form-data" id="receiptUploadForm">
+                                    {% csrf_token %}
 
-                                <button type="submit" class="btn btn-primary btn-lg w-100">
-                                    <i class="fas fa-check"></i> Upload Receipt & Confirm
-                                </button>
-                            </form>
+                                    <div class="form-group mb-3">
+                                        <label for="receipt" class="form-label">
+                                            <i class="fas fa-image"></i> Choose Receipt Image
+                                        </label>
+                                        <input
+                                            type="file"
+                                            class="form-control"
+                                            id="receipt"
+                                            name="receipt"
+                                            accept="image/*,.pdf"
+                                            required
+                                        >
+                                        <small class="text-muted d-block mt-2">
+                                            PNG, JPG, GIF, PDF (Max 5MB)
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group mb-4">
+                                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                                        <textarea
+                                            class="form-control"
+                                            id="notes"
+                                            name="notes"
+                                            rows="2"
+                                            placeholder="e.g., Transfer reference, payment time, etc."
+                                        ></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-lg w-100" id="receiptSubmitBtn">
+                                        <span id="receiptSubmitBtnText"><i class="fas fa-check"></i> Upload Payment Receipt</span>
+                                    </button>
+
+                                    <div class="receipt-uploading-note" id="receiptUploadingNote">
+                                        <span class="receipt-spinner receipt-spinner--dark" aria-hidden="true"></span>
+                                        <span>Please wait while your payment receipt is being uploaded. Do not submit again.</span>
+                                    </div>
+                                </form>
+                            {% endif %}
 
                             <div class="alert alert-light mt-3">
                                 <small class="text-muted">
@@ -184,4 +205,49 @@
     </div>
 </div>
 
+<script>
+(function () {
+    var form = document.getElementById('receiptUploadForm');
+    if (!form) return; // no form rendered (receipt already uploaded) — nothing to wire up
+
+    var submitBtn = document.getElementById('receiptSubmitBtn');
+    var submitBtnText = document.getElementById('receiptSubmitBtnText');
+    var fileInput = document.getElementById('receipt');
+    var uploadingNote = document.getElementById('receiptUploadingNote');
+    var hasSubmitted = false;
+
+    form.addEventListener('submit', function (event) {
+        // Guard against a second submit (double-click, Enter key repeat,
+        // etc.) — if we've already started uploading, block any further
+        // submissions outright rather than letting the browser queue a
+        // second request.
+        if (hasSubmitted) {
+            event.preventDefault();
+            return;
+        }
+        hasSubmitted = true;
+
+        // Let the form submit normally (full page POST to the existing
+        // Django view, same as before) — this just visually locks the UI
+        // while that request is in flight. The browser navigates away on
+        // success, so there's no "stop the spinner on success" code needed
+        // here; the success page replaces this one entirely. If the
+        // request fails validation server-side, Django redirects back to
+        // this same page fresh (a normal page load), which naturally
+        // resets everything below without any extra JS.
+        submitBtn.disabled = true;
+        submitBtnText.innerHTML = '<span class="receipt-spinner" aria-hidden="true"></span>Uploading Receipt...';
+        uploadingNote.classList.add('active');
+
+        // Disabling the file input immediately (in this same submit event)
+        // would strip it from the request — browsers exclude `disabled`
+        // fields from the data they're in the middle of submitting.
+        // Deferring to the next tick lets the browser finish capturing the
+        // form's current values first, so the file still actually uploads.
+        setTimeout(function () {
+            fileInput.disabled = true;
+        }, 0);
+    });
+})();
+</script>
 {% endblock %}
