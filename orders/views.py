@@ -297,7 +297,7 @@ Please assist me with payment details."""
         'whatsapp_number': whatsapp_number,
         'whatsapp_message': whatsapp_message,
     }
-    return render(request, 'payment_confirmation.html', context)
+    return render(request, 'Payment_confirmation.html', context)
 
 
 def receipt_upload_success(request, order_id):
