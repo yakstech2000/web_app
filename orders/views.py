@@ -13,6 +13,7 @@ from decimal import Decimal
 from cart.models import Cart, CartItem
 from .models import Order, OrderItem, PickupLocation
 from product.models import Product
+from .tracking import build_order_timeline
 
 # Reused so a post-purchase account is created under the same password
 # rules and audit logging as a normal signup.
@@ -356,8 +357,50 @@ def order_detail(request, order_id):
     context = {
         'order': order,
         'items_with_reviews': items_with_reviews,
+        'timeline': build_order_timeline(order),
     }
     return render(request, 'order_detail.html', context)
+
+
+@login_required(login_url='account:login')
+@require_http_methods(["POST"])
+def confirm_order_received(request, order_id):
+    """
+    Customer-initiated final step of the order lifecycle. Once an order's
+    `status` has reached STATUS_COMPLETED (shipped / ready for pickup),
+    the customer can confirm they actually received it. This stamps
+    `customer_confirmed_at` only — it never changes `order.status`, so the
+    admin-driven status field, TERMINAL_STATUSES logic, emails, and the
+    tracking timeline in tracking.py are completely unaffected.
+
+    Both checks below are enforced server-side and are not optional —
+    the button being hidden in the template is not relied on for security.
+    """
+    order = get_object_or_404(Order, id=order_id)
+
+    # Ownership check — only the customer who placed this order may confirm
+    # it (no staff bypass here, unlike the read-only views above: this is
+    # a customer attestation, not something staff should do on their behalf).
+    if order.user_id != request.user.id:
+        messages.error(request, "You don't have permission to confirm this order.")
+        return redirect('product_list')
+
+    # Status check — can only be confirmed once the order has actually
+    # reached the completed (shipped / ready for pickup) stage.
+    if order.status != Order.STATUS_COMPLETED:
+        messages.error(request, "This order can't be confirmed as received yet.")
+        return redirect('order_detail', order_id=order.id)
+
+    # Prevent duplicate confirmation.
+    if order.customer_confirmed_at:
+        messages.info(request, "You've already confirmed receipt of this order.")
+        return redirect('order_detail', order_id=order.id)
+
+    order.customer_confirmed_at = timezone.now()
+    order.save(update_fields=['customer_confirmed_at'])
+
+    messages.success(request, "Order received successfully. Your order is now completed.")
+    return redirect('order_detail', order_id=order.id)
 
 
 @require_http_methods(["GET", "POST"])

@@ -42,12 +42,23 @@ class PickupLocation(models.Model):
 class Order(models.Model):
     STATUS_PENDING = 'pending'
     STATUS_PAID = 'paid'
+    STATUS_PROCESSING = 'processing'
     STATUS_COMPLETED = 'completed'
     STATUS_CANCELLED = 'cancelled'
 
+    # NOTE on STATUS_PROCESSING: this is the one new status added on top of
+    # the original 4 (pending/paid/completed/cancelled). It's an OPTIONAL
+    # checkpoint between paid and completed — admin can set it to show
+    # customers "we're preparing your order" before shipping/pickup-ready,
+    # or skip it entirely and go straight from paid to completed exactly
+    # like before. Deliberately did NOT add packed/shipped/out_for_delivery/
+    # delivered as separate statuses — nothing in this system can actually
+    # trigger those distinctions (no courier/shipping integration), so
+    # adding them would just be fake progress with no real event behind it.
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Pending'),
         (STATUS_PAID, 'Paid'),
+        (STATUS_PROCESSING, 'Processing'),
         (STATUS_COMPLETED, 'Completed'),
         (STATUS_CANCELLED, 'Cancelled'),
     ]
@@ -125,6 +136,18 @@ class Order(models.Model):
     )
     receipt_uploaded_at = models.DateTimeField(null=True, blank=True)
 
+    # Set when the customer clicks "I Received My Order" on the order
+    # detail page, once `status` has reached STATUS_COMPLETED. This does
+    # NOT replace or change `status` — completed already means "shipped /
+    # ready for pickup" and continues to drive the admin workflow, emails,
+    # and tracking timeline exactly as before. This field is purely the
+    # customer-confirmed receipt milestone layered on top of that.
+    customer_confirmed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the customer confirmed they received this order.",
+    )
+
     class Meta:
         ordering = ['-created_at']
 
@@ -156,6 +179,37 @@ class OrderItem(models.Model):
 
     def get_subtotal(self):
         return self.price * self.quantity
+
+
+class OrderStatusHistory(models.Model):
+    """
+    One row per status change. Powers the customer-facing tracking
+    timeline and gives admin a full audit trail of who changed what, when.
+    Created automatically from BaseOrderAdmin.save_model() in admin.py
+    whenever status actually changes — never created speculatively, so
+    every row here reflects a real transition that happened.
+    """
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
+    status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES)
+    note = models.CharField(max_length=255, blank=True)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Staff user who made this change, if applicable. Blank for "
+                   "system-generated entries (e.g. the backfilled history for "
+                   "orders that existed before this feature was added).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Order status history entry'
+        verbose_name_plural = 'Order status history'
+
+    def __str__(self):
+        return f"{self.order.order_number} → {self.get_status_display()}"
 
 
 class DeliveryOrder(Order):

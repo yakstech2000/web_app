@@ -46,7 +46,7 @@ def signup(request):
     - Email verification required
     """
     if request.user.is_authenticated:
-        return redirect('order_history')
+        return redirect('account:dashboard')
 
     if request.method == 'POST':
         form = SecureSignUpForm(request.POST)
@@ -102,7 +102,12 @@ def login_view(request):
     - Generic error messages
     """
     if request.user.is_authenticated:
-        return redirect('order_history')
+        # Someone already logged in landed on the login page itself (e.g.
+        # clicked the account/login icon in the navbar while signed in) —
+        # send them to the dashboard, not order history. Order history is
+        # only the destination for an actual successful login action,
+        # handled separately below.
+        return redirect('account:dashboard')
 
     if request.method == 'POST':
         form = SecureLoginForm(request.POST)
@@ -308,7 +313,7 @@ def resend_verification(request):
 def password_reset(request):
     """Request password reset"""
     if request.user.is_authenticated:
-        return redirect('order_history')
+        return redirect('account:dashboard')
 
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
