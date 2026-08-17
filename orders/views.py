@@ -282,7 +282,7 @@ I would like to complete my order payment.
 
 Order Number: {order.order_number}
 Customer Name: {order.full_name}
-Total Amount: ${order.total_price}
+Total Amount:₦{order.total_price}
 
 Items:
 {items_text}
