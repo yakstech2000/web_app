@@ -151,16 +151,60 @@
                     </div>
 
                     {% if order.status == 'completed' %}
-                    <form method="post" action="{% url 'confirm_order_received' order.id %}" class="mt-3">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100">
-                            {% if order.fulfillment_method == 'pickup' %}
-                                ✅ I've Picked Up My Order
-                            {% else %}
-                                ✅ I've Received My Order
-                            {% endif %}
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-success w-100 mt-3" data-bs-toggle="modal" data-bs-target="#confirmReceivedModal">
+                        {% if order.fulfillment_method == 'pickup' %}
+                            ✅ I've Picked Up My Order
+                        {% else %}
+                            ✅ I've Received My Order
+                        {% endif %}
+                    </button>
+
+                    <div class="modal fade" id="confirmReceivedModal" tabindex="-1" aria-labelledby="confirmReceivedModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body text-center p-4">
+                                    <p class="mb-4" id="confirmReceivedModalLabel">
+                                        {% if order.fulfillment_method == 'pickup' %}
+                                            Have you collected this order? Confirm only if you have actually picked it up.
+                                        {% else %}
+                                            Have you received this order? Confirm only if you have actually received it.
+                                        {% endif %}
+                                    </p>
+                                    <form method="post" action="{% url 'confirm_order_received' order.id %}" id="confirmReceivedForm">
+                                        {% csrf_token %}
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-success" id="confirmReceivedSubmitBtn">
+                                                <span id="confirmReceivedSubmitText">Yes, I Received It</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                    (function () {
+                        var form = document.getElementById('confirmReceivedForm');
+                        if (!form) return;
+                        var hasSubmitted = false;
+                        form.addEventListener('submit', function (event) {
+                            // Same double-submit guard pattern used on the
+                            // receipt upload form — block a second click
+                            // while the first request is still in flight.
+                            if (hasSubmitted) {
+                                event.preventDefault();
+                                return;
+                            }
+                            hasSubmitted = true;
+                            var btn = document.getElementById('confirmReceivedSubmitBtn');
+                            var text = document.getElementById('confirmReceivedSubmitText');
+                            btn.disabled = true;
+                            text.textContent = 'Confirming...';
+                        });
+                    })();
+                    </script>
                     {% endif %}
                 </div>
             </div>

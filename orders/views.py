@@ -389,11 +389,17 @@ def confirm_order_received(request, order_id):
     order detail page. This is a genuine signal (the customer actually
     clicked it), not a guessed/automated status, so it's only allowed to
     move a 'completed' order (already shipped / ready-for-pickup) forward
-    to 'delivered' — never used to skip or fake earlier stages.
+    to 'delivered' — never used to skip or fake earlier stages, and
+    scoped strictly to the one order in the URL — nothing else is touched.
     """
     order = get_object_or_404(Order, id=order_id)
 
-    if order.user and order.user != request.user and not request.user.is_staff:
+    is_owner = order.user is not None and order.user == request.user
+    is_staff = request.user.is_staff
+    if not (is_owner or is_staff):
+        # Note: order.user being None (a guest order never linked to an
+        # account) does NOT mean "anyone logged in can confirm it" — only
+        # staff can confirm on behalf of an order with no owner attached.
         messages.error(request, "You don't have permission to update this order.")
         return redirect('product_list')
 
@@ -411,7 +417,7 @@ def confirm_order_received(request, order_id):
         changed_by=request.user if request.user.is_authenticated else None,
     )
 
-    messages.success(request, "Thanks for confirming! Glad it arrived safely.")
+    messages.success(request, "Order confirmed as received. Thank you!")
     return redirect('order_detail', order_id=order.id)
 
 
