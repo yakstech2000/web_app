@@ -1,0 +1,12 @@
+.admin-unread-badge {
+    display: inline-block;
+    background: #dc3545;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.22em 0.5em;
+    border-radius: 999px;
+    margin-left: 0.45em;
+    vertical-align: middle;
+}

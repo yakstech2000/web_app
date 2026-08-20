@@ -1,10 +1,63 @@
 {% extends "admin/base_site.html" %}
 {% load humanize %}
 {% load i18n static %}
+{% load notification_badges %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="{% static 'notifications/css/admin_badges.css' %}">
+<style>
+    /* Small dashboard-native badge variant — matches this page's own
+       icon/pill sizing better than the default admin_badges.css one,
+       which is tuned for the plainer stock sidebar. */
+    .dr-sidebar-link .admin-unread-badge,
+    .dr-module-row-title .admin-unread-badge {
+        margin-left: 0.5rem;
+        font-size: 0.68rem;
+    }
+
+    .dr-notif-summary {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .dr-notif-summary-left { display: flex; align-items: center; gap: 0.9rem; }
+    .dr-notif-summary-icon { font-size: 1.4rem; }
+    .dr-notif-summary-count {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #1a1a1a;
+    }
+    .dr-notif-summary-count.is-unread {
+        color: #c41e3a;
+    }
+    .dr-notif-summary-count.is-caught-up {
+        color: #555;
+        font-weight: 600;
+    }
+    .dr-notif-summary-recent {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    .dr-notif-summary-recent a { color: inherit; text-decoration: none; }
+    .dr-notif-summary-recent a:hover { text-decoration: underline; }
+    .dr-notif-summary-link {
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+</style>
 {% endblock %}
 
 {% block coltype %}flex{% endblock %}
@@ -26,8 +79,10 @@
             </button>
             <div class="dr-sidebar-group-items">
                 {% for model in app.models %}
+                {% unread_badge_for model.admin_url section_unread_counts as badge_count %}
                 <a href="{{ model.admin_url }}" class="dr-sidebar-link">
                     <i class="fa-regular fa-circle-dot"></i> {{ model.name }}
+                    {% if badge_count %}<span class="admin-unread-badge">{{ badge_count }}</span>{% endif %}
                 </a>
                 {% endfor %}
             </div>
@@ -42,6 +97,32 @@
             <h2>{% translate 'Site administration' %}</h2>
             <p class="dr-welcome-sub">Welcome back, {{ request.user.first_name|default:request.user.username }}! Here's what's happening with your store today.</p>
         </div>
+
+        <!-- Notifications summary -->
+        {% if unread_notification_count is not None %}
+        <div class="dr-notif-summary">
+            <div class="dr-notif-summary-left">
+                <span class="dr-notif-summary-icon">🔔</span>
+                <div>
+                    <div class="dr-notif-summary-count {% if unread_notification_count %}is-unread{% else %}is-caught-up{% endif %}">
+                        {% if unread_notification_count %}
+                            {{ unread_notification_count }} unread notification{{ unread_notification_count|pluralize }}
+                        {% else %}
+                            You're all caught up
+                        {% endif %}
+                    </div>
+                    {% if recent_notifications %}
+                    <div class="dr-notif-summary-recent">
+                        {% for n in recent_notifications|slice:":3" %}
+                            <a href="{% url 'notifications:open' n.id %}">{{ n.icon }} {{ n.title }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'notifications:list' %}" class="button dr-btn-outline dr-notif-summary-link">View all notifications</a>
+        </div>
+        {% endif %}
 
         <!-- Stat cards -->
         <div class="dr-stat-row">
@@ -88,9 +169,13 @@
                 <div class="module dr-module">
                     <div class="dr-module-header">{{ app.name|upper }}</div>
                     {% for model in app.models %}
+                    {% unread_badge_for model.admin_url section_unread_counts as badge_count %}
                     <div class="dr-module-row">
                         <div>
-                            <div class="dr-module-row-title">{{ model.name }}</div>
+                            <div class="dr-module-row-title">
+                                {{ model.name }}
+                                {% if badge_count %}<span class="admin-unread-badge">{{ badge_count }}</span>{% endif %}
+                            </div>
                         </div>
                         <div class="dr-module-row-actions">
                             {% if model.add_url %}

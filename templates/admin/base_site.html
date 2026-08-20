@@ -15,4 +15,17 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}">
+<link rel="stylesheet" href="{% static 'notifications/css/admin_badges.css' %}">
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+{% if request.user.is_authenticated and request.user.is_staff %}
+    {# Only fires on stock Django admin pages (changelist/change forms) — #}
+    {# the custom dashboard at /admin/ (index.html) renders its own #}
+    {# badges server-side instead, since it has its own sidebar markup #}
+    {# that #nav-sidebar (targeted below) doesn't apply to. #}
+    <script id="admin-badge-data" type="application/json">{{ section_unread_counts_json|default:"{}"|safe }}</script>
+    <script src="{% static 'notifications/js/admin_badges.js' %}"></script>
+{% endif %}
 {% endblock %}

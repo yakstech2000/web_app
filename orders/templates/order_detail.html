@@ -97,67 +97,6 @@
         .track-stage { min-width: 85px; }
         .track-label { font-size: 0.72rem; }
     }
-
-    /* --- Customer receipt confirmation --- */
-    .btn-confirm-received {
-        background: var(--sl-accent, #C8912E);
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        padding: 0.8rem 1.5rem;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        transition: background 0.2s ease, transform 0.15s ease;
-    }
-    .btn-confirm-received:hover,
-    .btn-confirm-received:focus {
-        background: #b07f28;
-        color: #fff;
-    }
-    .btn-confirm-received:active {
-        transform: translateY(1px);
-    }
-    .confirm-received-note {
-        font-size: 0.8rem;
-        color: var(--sl-ink-soft, #6c757d);
-        margin-top: 0.6rem;
-        text-align: center;
-    }
-    .order-completed-banner {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        background: rgba(22, 36, 28, 0.06);
-        border: 1px solid rgba(22, 36, 28, 0.15);
-        border-radius: 10px;
-        padding: 1rem 1.2rem;
-        margin-top: 1rem;
-    }
-    .order-completed-check {
-        width: 34px;
-        height: 34px;
-        min-width: 34px;
-        border-radius: 50%;
-        background: var(--sl-green, #16241C);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-    }
-    .order-completed-text strong {
-        display: block;
-        font-family: var(--sl-font-display, inherit);
-        color: var(--sl-ink, #16241C);
-        margin-bottom: 0.15rem;
-    }
-    .order-completed-text {
-        font-size: 0.9rem;
-        color: var(--sl-ink-soft, #6c757d);
-    }
-    @media (max-width: 576px) {
-        .btn-confirm-received { width: 100%; }
-    }
 </style>
 
 <div class="container mt-5 mb-5">
@@ -206,29 +145,22 @@
                             <div style="font-size: 0.85rem; color: var(--sl-ink-soft); margin-bottom: 0.25rem;">Order Status</div>
                             <h5 class="mb-0">{{ order.get_status_display }}</h5>
                         </div>
-                        <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'paid' %}bg-info{% elif order.status == 'processing' %}bg-secondary{% elif order.status == 'completed' %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'paid' %}bg-info{% elif order.status == 'processing' %}bg-secondary{% elif order.status == 'completed' %}bg-success{% elif order.status == 'delivered' %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 1rem; padding: 0.5rem 1rem;">
                             {{ order.get_status_display }}
                         </span>
                     </div>
 
                     {% if order.status == 'completed' %}
-                        {% if order.customer_confirmed_at %}
-                        <div class="order-completed-banner">
-                            <div class="order-completed-check">✓</div>
-                            <div class="order-completed-text">
-                                <strong>Order Completed</strong>
-                                You confirmed that you received this order on {{ order.customer_confirmed_at|date:"M d, Y \a\t g:i A" }}.
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="mt-3">
-                            <form method="post" action="{% url 'confirm_order_received' order.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-confirm-received">I Received My Order</button>
-                            </form>
-                            <div class="confirm-received-note">Only confirm once your order has actually arrived — this marks your order as complete.</div>
-                        </div>
-                        {% endif %}
+                    <form method="post" action="{% url 'confirm_order_received' order.id %}" class="mt-3">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100">
+                            {% if order.fulfillment_method == 'pickup' %}
+                                ✅ I've Picked Up My Order
+                            {% else %}
+                                ✅ I've Received My Order
+                            {% endif %}
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
             </div>
@@ -270,7 +202,7 @@
                             {% endif %}
                             <div style="font-size: 0.85rem; color: var(--sl-ink-soft);">{{ entry.review.review_text }}</div>
                         </div>
-                        {% elif order.customer_confirmed_at %}
+                        {% elif order.status == 'completed' %}
                         <div class="mt-2">
                             <small class="text-muted">Not reviewed yet — you can write a review from your dashboard.</small>
                         </div>

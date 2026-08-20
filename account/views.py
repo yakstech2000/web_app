@@ -25,6 +25,7 @@ from account.decorators import (
     throttle_login_attempts, get_client_ip
 )
 from account.models import UserAuditLog, LoginAttempt
+from notifications.services import notify_new_customer
 
 from django.utils import timezone
 from datetime import timedelta
@@ -60,6 +61,8 @@ def signup(request):
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
                 details={'email': user.email}
             )
+
+            notify_new_customer(user)
 
             email_sent = send_verification_email(user, request)
 

@@ -10,13 +10,14 @@ here invents progress the order hasn't actually made.
 from .models import Order
 
 # (status_key, label) — the normal linear progression for each fulfillment
-# method. Only the final label differs (Shipped vs Ready for Pickup),
-# matching the wording your emails already use for each case.
+# method. Labels differ where the wording should (Shipped vs Ready for
+# Pickup, Delivered vs Picked Up), matching what the emails already say.
 _DELIVERY_STAGES = [
     (Order.STATUS_PENDING, 'Order Placed'),
     (Order.STATUS_PAID, 'Payment Confirmed'),
     (Order.STATUS_PROCESSING, 'Processing'),
     (Order.STATUS_COMPLETED, 'Shipped'),
+    (Order.STATUS_DELIVERED, 'Delivered'),
 ]
 
 _PICKUP_STAGES = [
@@ -24,16 +25,7 @@ _PICKUP_STAGES = [
     (Order.STATUS_PAID, 'Payment Confirmed'),
     (Order.STATUS_PROCESSING, 'Processing'),
     (Order.STATUS_COMPLETED, 'Ready for Pickup'),
-]
-
-# Order the 5 statuses fall in, used to compare "how far along" the order
-# is even for stages that don't have their own explicit history record
-# (e.g. admin skipped 'processing' and went straight to 'completed').
-_STATUS_SEQUENCE = [
-    Order.STATUS_PENDING,
-    Order.STATUS_PAID,
-    Order.STATUS_PROCESSING,
-    Order.STATUS_COMPLETED,
+    (Order.STATUS_DELIVERED, 'Picked Up'),
 ]
 
 
@@ -42,16 +34,11 @@ def build_order_timeline(order):
     Returns a dict describing the timeline to render:
         {
             'cancelled': bool,
-            'headline': str,          # e.g. "Your order is being processed"
+            'headline': str,
             'stages': [
-                {
-                    'status': 'paid',
-                    'label': 'Payment Confirmed',
-                    'completed': True,
-                    'current': False,
-                    'timestamp': <datetime or None>,
-                    'note': '',
-                },
+                {'status': 'paid', 'label': 'Payment Confirmed',
+                 'completed': True, 'current': False,
+                 'timestamp': <datetime or None>, 'note': ''},
                 ...
             ],
         }
@@ -81,11 +68,11 @@ def build_order_timeline(order):
         if entry.status not in history_by_status:
             history_by_status[entry.status] = entry
 
-    current_index = _STATUS_SEQUENCE.index(order.status) if order.status in _STATUS_SEQUENCE else 0
+    current_index = Order.STATUS_SEQUENCE.index(order.status) if order.status in Order.STATUS_SEQUENCE else 0
 
     stages = []
     for status_key, label in stage_defs:
-        stage_index = _STATUS_SEQUENCE.index(status_key)
+        stage_index = Order.STATUS_SEQUENCE.index(status_key)
         history_entry = history_by_status.get(status_key)
 
         reached = stage_index <= current_index
@@ -105,6 +92,10 @@ def build_order_timeline(order):
         Order.STATUS_COMPLETED: (
             'Your order has shipped' if order.fulfillment_method == Order.FULFILLMENT_DELIVERY
             else 'Your order is ready for pickup'
+        ),
+        Order.STATUS_DELIVERED: (
+            'Delivered — thanks for shopping with us!' if order.fulfillment_method == Order.FULFILLMENT_DELIVERY
+            else 'Picked up — thanks for shopping with us!'
         ),
     }
 

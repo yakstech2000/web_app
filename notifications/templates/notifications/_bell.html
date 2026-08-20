@@ -1,0 +1,58 @@
+{% comment %}
+Admin-only notification bell. Included from admin/base_site.html's
+usertools block override, so it appears on every Django admin page for
+staff users. Deliberately does NOT reuse notifications/_bell.html or its
+CSS/JS — that version depends on Bootstrap (data-bs-toggle, .dropdown-menu
+positioning), which Django admin doesn't load. Loading Bootstrap into
+admin just for this would risk clashing with Django's own admin CSS across
+every page (tables, forms, buttons, etc. all get restyled by Bootstrap's
+resets). This is a small, self-contained version instead: same context
+variables (unread_notification_count, recent_notifications — both already
+supplied globally by notifications.context_processors.notification_bell)
+and the same notifications:* URLs, but its own plain CSS/JS.
+
+unread_notification_count / recent_notifications are only ever non-empty
+for staff users (see notification_bell() in context_processors.py), so no
+extra permission check is needed here.
+{% endcomment %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'notifications/css/admin_bell.css' %}">
+
+<div class="dr-notif-bell-wrap" id="drNotifBellWrap">
+    <button type="button" class="dr-notif-bell-btn" id="drNotifBellBtn" aria-haspopup="true" aria-expanded="false" aria-controls="drNotifDropdown">
+        <span class="dr-notif-bell-icon" aria-hidden="true">🔔</span>
+        {% if unread_notification_count %}
+        <span class="dr-notif-bell-badge">{{ unread_notification_count }}</span>
+        {% endif %}
+        <span class="sr-only" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);">Notifications</span>
+    </button>
+
+    <div class="dr-notif-dropdown" id="drNotifDropdown" hidden>
+        <div class="dr-notif-dropdown-header">
+            <span>Notifications</span>
+            {% if unread_notification_count %}
+            <form method="post" action="{% url 'notifications:mark_all_read' %}" class="dr-notif-mark-all-form">
+                {% csrf_token %}
+                <button type="submit" class="dr-notif-mark-all-btn">Mark all as read</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="dr-notif-dropdown-list">
+            {% for n in recent_notifications %}
+            <a href="{% url 'notifications:open' n.id %}" class="dr-notif-item {% if not n.is_read %}dr-notif-item-unread{% endif %}">
+                <span class="dr-notif-item-icon">{{ n.icon }}</span>
+                <span class="dr-notif-item-body">
+                    <span class="dr-notif-item-title">{{ n.title }}</span>
+                    <span class="dr-notif-item-message">{{ n.message }}</span>
+                    <span class="dr-notif-item-time">{{ n.created_at|timesince }} ago</span>
+                </span>
+            </a>
+            {% empty %}
+            <div class="dr-notif-empty">No notifications yet.</div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'notifications:list' %}" class="dr-notif-dropdown-footer">View all notifications</a>
+    </div>
+</div>
+
+<script src="{% static 'notifications/js/admin_bell.js' %}"></script>

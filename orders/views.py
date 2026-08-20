@@ -11,9 +11,10 @@ from .models import Order
 from decimal import Decimal
 
 from cart.models import Cart, CartItem
-from .models import Order, OrderItem, PickupLocation
+from .models import Order, OrderItem, PickupLocation, OrderStatusHistory
 from product.models import Product
 from .tracking import build_order_timeline
+from notifications.services import notify_new_order, notify_receipt_uploaded, notify_new_customer
 
 # Reused so a post-purchase account is created under the same password
 # rules and audit logging as a normal signup.
@@ -173,6 +174,10 @@ def checkout(request):
         if buy_now_data:
             del request.session['buy_now']
 
+        # Notify staff once, right here at creation — never on GET/page
+        # render, so refreshing order_review afterward can't re-trigger this.
+        notify_new_order(order)
+
         messages.success(request, f"Order created: {order.order_number}")
         return redirect('order_review', order_id=order.id)
 
@@ -249,6 +254,16 @@ def payment_confirmation(request, order_id):
 
     # Handle receipt upload
     if request.method == 'POST':
+        # Server-side duplicate-upload guard — the frontend JS also disables
+        # the form after one submit, but that alone can't be trusted (a
+        # second tab, a replayed request, JS disabled, etc.), so this is
+        # the real enforcement. If a receipt is already on file for this
+        # order, silently treat this as "already done" instead of
+        # overwriting it or erroring confusingly.
+        if order.payment_receipt:
+            messages.info(request, "A receipt has already been uploaded for this order — no need to upload again.")
+            return redirect('receipt_upload_success', order_id=order.id)
+
         receipt = request.FILES.get('receipt')
         notes = request.POST.get('notes', '').strip()
 
@@ -266,7 +281,12 @@ def payment_confirmation(request, order_id):
         order.receipt_uploaded_at = timezone.now()
         order.save()
 
-        messages.success(request, "Receipt uploaded successfully! We'll verify it shortly.")
+        # This POST branch is only reachable once per order — the guard
+        # above already redirects away if a receipt exists — so this can't
+        # double-fire from a resubmit or page refresh.
+        notify_receipt_uploaded(order)
+
+        messages.success(request, "Payment receipt uploaded successfully. We will review your payment and update your order.")
         return redirect('receipt_upload_success', order_id=order.id)
 
     # Prepare WhatsApp message if payment method is WhatsApp
@@ -282,7 +302,7 @@ I would like to complete my order payment.
 
 Order Number: {order.order_number}
 Customer Name: {order.full_name}
-Total Amount:₦{order.total_price}
+Total Amount: ${order.total_price}
 
 Items:
 {items_text}
@@ -297,7 +317,7 @@ Please assist me with payment details."""
         'whatsapp_number': whatsapp_number,
         'whatsapp_message': whatsapp_message,
     }
-    return render(request, 'Payment_confirmation.html', context)
+    return render(request, 'payment_confirmation.html', context)
 
 
 def receipt_upload_success(request, order_id):
@@ -362,44 +382,36 @@ def order_detail(request, order_id):
     return render(request, 'order_detail.html', context)
 
 
-@login_required(login_url='account:login')
 @require_http_methods(["POST"])
 def confirm_order_received(request, order_id):
     """
-    Customer-initiated final step of the order lifecycle. Once an order's
-    `status` has reached STATUS_COMPLETED (shipped / ready for pickup),
-    the customer can confirm they actually received it. This stamps
-    `customer_confirmed_at` only — it never changes `order.status`, so the
-    admin-driven status field, TERMINAL_STATUSES logic, emails, and the
-    tracking timeline in tracking.py are completely unaffected.
-
-    Both checks below are enforced server-side and are not optional —
-    the button being hidden in the template is not relied on for security.
+    Customer self-confirmation — "I've received my order" button on the
+    order detail page. This is a genuine signal (the customer actually
+    clicked it), not a guessed/automated status, so it's only allowed to
+    move a 'completed' order (already shipped / ready-for-pickup) forward
+    to 'delivered' — never used to skip or fake earlier stages.
     """
     order = get_object_or_404(Order, id=order_id)
 
-    # Ownership check — only the customer who placed this order may confirm
-    # it (no staff bypass here, unlike the read-only views above: this is
-    # a customer attestation, not something staff should do on their behalf).
-    if order.user_id != request.user.id:
-        messages.error(request, "You don't have permission to confirm this order.")
+    if order.user and order.user != request.user and not request.user.is_staff:
+        messages.error(request, "You don't have permission to update this order.")
         return redirect('product_list')
 
-    # Status check — can only be confirmed once the order has actually
-    # reached the completed (shipped / ready for pickup) stage.
     if order.status != Order.STATUS_COMPLETED:
-        messages.error(request, "This order can't be confirmed as received yet.")
+        messages.info(request, "This order can't be marked as received right now.")
         return redirect('order_detail', order_id=order.id)
 
-    # Prevent duplicate confirmation.
-    if order.customer_confirmed_at:
-        messages.info(request, "You've already confirmed receipt of this order.")
-        return redirect('order_detail', order_id=order.id)
+    order.status = Order.STATUS_DELIVERED
+    order.save(update_fields=['status'])
 
-    order.customer_confirmed_at = timezone.now()
-    order.save(update_fields=['customer_confirmed_at'])
+    OrderStatusHistory.objects.create(
+        order=order,
+        status=Order.STATUS_DELIVERED,
+        note='Confirmed received by customer.',
+        changed_by=request.user if request.user.is_authenticated else None,
+    )
 
-    messages.success(request, "Order received successfully. Your order is now completed.")
+    messages.success(request, "Thanks for confirming! Glad it arrived safely.")
     return redirect('order_detail', order_id=order.id)
 
 
@@ -452,6 +464,8 @@ def create_account(request, order_id):
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
                 details={'email': user.email, 'source': 'post_purchase'},
             )
+
+            notify_new_customer(user)
 
             login(request, user)
             messages.success(request, "Account created! You can now track all your orders here.")

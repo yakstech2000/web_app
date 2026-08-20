@@ -44,24 +44,33 @@ class Order(models.Model):
     STATUS_PAID = 'paid'
     STATUS_PROCESSING = 'processing'
     STATUS_COMPLETED = 'completed'
+    STATUS_DELIVERED = 'delivered'
     STATUS_CANCELLED = 'cancelled'
 
-    # NOTE on STATUS_PROCESSING: this is the one new status added on top of
-    # the original 4 (pending/paid/completed/cancelled). It's an OPTIONAL
-    # checkpoint between paid and completed — admin can set it to show
-    # customers "we're preparing your order" before shipping/pickup-ready,
-    # or skip it entirely and go straight from paid to completed exactly
-    # like before. Deliberately did NOT add packed/shipped/out_for_delivery/
-    # delivered as separate statuses — nothing in this system can actually
-    # trigger those distinctions (no courier/shipping integration), so
-    # adding them would just be fake progress with no real event behind it.
+    # NOTE on STATUS_PROCESSING and STATUS_DELIVERED: these are the two
+    # statuses added on top of the original 4 (pending/paid/completed/
+    # cancelled). STATUS_PROCESSING is an optional admin checkpoint between
+    # paid and completed. STATUS_DELIVERED is different — it's driven by a
+    # genuine event (the customer clicking "I've received my order" on
+    # their order detail page, or admin confirming an in-person pickup
+    # handover), not a courier webhook we don't have. Deliberately did NOT
+    # add packed/shipped/out_for_delivery as separate statuses — nothing in
+    # this system can actually trigger those distinctions.
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Pending'),
         (STATUS_PAID, 'Paid'),
         (STATUS_PROCESSING, 'Processing'),
         (STATUS_COMPLETED, 'Completed'),
+        (STATUS_DELIVERED, 'Delivered'),
         (STATUS_CANCELLED, 'Cancelled'),
     ]
+
+    # Shared ordering used by both tracking.py (timeline "how far along" -
+    # comparison) and admin.py (blocking backward status moves) — one
+    # source of truth so the two can't drift apart. Cancelled is
+    # deliberately excluded — it's reachable from any non-terminal status
+    # but isn't part of the normal forward progression.
+    STATUS_SEQUENCE = [STATUS_PENDING, STATUS_PAID, STATUS_PROCESSING, STATUS_COMPLETED, STATUS_DELIVERED]
 
     PAYMENT_PAYSTACK = 'paystack'
     PAYMENT_BANK_TRANSFER = 'bank_transfer'
@@ -135,18 +144,6 @@ class Order(models.Model):
         help_text="Upload bank transfer receipt or payment proof"
     )
     receipt_uploaded_at = models.DateTimeField(null=True, blank=True)
-
-    # Set when the customer clicks "I Received My Order" on the order
-    # detail page, once `status` has reached STATUS_COMPLETED. This does
-    # NOT replace or change `status` — completed already means "shipped /
-    # ready for pickup" and continues to drive the admin workflow, emails,
-    # and tracking timeline exactly as before. This field is purely the
-    # customer-confirmed receipt milestone layered on top of that.
-    customer_confirmed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the customer confirmed they received this order.",
-    )
 
     class Meta:
         ordering = ['-created_at']
